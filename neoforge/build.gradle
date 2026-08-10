@@ -10,10 +10,7 @@ dependencies {
 neoForge {
     version = project.neo_version
 
-    parchment {
-        minecraftVersion = project.minecraft_version
-        mappingsVersion = '2024.11.17'
-    }
+
 
     runs {
         client {
