@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+    id 'net.neoforged.moddev' version '2.0.76-beta'
+}
+
+dependencies {
+    implementation project(":common")
+}
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        minecraftVersion = project.minecraft_version
+        mappingsVersion = '2024.11.17' // Random mappings version assuming standard parchment
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+            sourceSet(project(":common").sourceSets.main)
+        }
+    }
+}

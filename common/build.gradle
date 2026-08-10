@@ -1,0 +1,3 @@
+dependencies {
+    compileOnly "net.neoforged:neoforge:${project.neo_version}"
+}
