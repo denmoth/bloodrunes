@@ -1,0 +1,12 @@
+{
+  "type": "bloodrunes:rune_smithing",
+  "template": {
+    "item": "minecraft:amethyst_shard"
+  },
+  "base": {
+    "tag": "minecraft:swords"
+  },
+  "addition": {
+    "item": "bloodrunes:blood_rune"
+  }
+}

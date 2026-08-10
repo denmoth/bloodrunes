@@ -1,0 +1,12 @@
+{
+  "type": "bloodrunes:rune_smithing",
+  "template": {
+    "item": "minecraft:amethyst_shard"
+  },
+  "base": {
+    "tag": "minecraft:chestplates"
+  },
+  "addition": {
+    "item": "bloodrunes:courage_rune"
+  }
+}
