@@ -12,7 +12,7 @@ neoForge {
 
     parchment {
         minecraftVersion = project.minecraft_version
-        mappingsVersion = '2024.11.17' // Random mappings version assuming standard parchment
+        mappingsVersion = '2024.11.17'
     }
 
     runs {

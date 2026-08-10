@@ -12,7 +12,7 @@
 out/
 .vscode/
 
-# Python (as requested)
+# Python
 *.py[cod]
 *$py.class
 .venv/
@@ -27,5 +27,4 @@ Thumbs.db
 # Logs
 *.log
 
-# User rules specific
 local/
