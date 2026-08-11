@@ -1,7 +1,6 @@
 package com.denmoth.bloodrunes.neoforge;
 
 import com.denmoth.bloodrunes.BloodRunes;
-import net.minecraft.resources.Identifier;
 import net.neoforged.fml.common.Mod;
 
 @Mod(BloodRunes.MOD_ID)
@@ -15,9 +14,10 @@ public class BloodRunesNeoForge {
         com.denmoth.bloodrunes.neoforge.setup.ModCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
         com.denmoth.bloodrunes.neoforge.setup.ModRecipes.SERIALIZERS.register(modEventBus);
         com.denmoth.bloodrunes.neoforge.setup.ModRecipes.TYPES.register(modEventBus);
-        
+
         modEventBus.addListener(com.denmoth.bloodrunes.neoforge.network.ModMessages::register);
-        
+        modEventBus.addListener(com.denmoth.bloodrunes.neoforge.client.ClientEvents::onRegisterRenderers);
+
         BloodRunes.init();
     }
 }
