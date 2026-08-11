@@ -3,8 +3,6 @@ package com.denmoth.bloodrunes.neoforge.network;
 import com.denmoth.bloodrunes.BloodRunes;
 import com.denmoth.bloodrunes.neoforge.setup.ModAttachments;
 import net.minecraft.client.Minecraft;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -21,6 +19,11 @@ public class ModMessages {
                     }
                 });
             }
+        );
+        registrar.playToClient(
+            SpawnSoulParticlesPacket.TYPE,
+            SpawnSoulParticlesPacket.STREAM_CODEC,
+            SpawnSoulParticlesPacket::handle
         );
     }
 }

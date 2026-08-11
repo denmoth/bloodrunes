@@ -53,7 +53,7 @@ public class AltarBlockEntityRenderer implements BlockEntityRenderer<AltarBlockE
             
             poseStack.translate(0.5D, 1.25D + Math.sin(renderTime * 0.1) * 0.1D, 0.5D);
             poseStack.mulPose(Axis.YP.rotationDegrees(renderTime * 4.0F));
-            poseStack.scale(0.48f, 0.48f, 0.48f);
+            poseStack.scale(1.33f, 1.33f, 1.33f);
 
             state.itemRenderState.submit(poseStack, collector, 15728880, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, 0);
 
