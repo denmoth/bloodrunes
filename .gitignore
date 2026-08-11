@@ -36,3 +36,6 @@ compile_errors.txt
 classes.txt
 tmp/
 
+
+tmp_src/
+tmp/
