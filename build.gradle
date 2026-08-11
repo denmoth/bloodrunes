@@ -8,6 +8,7 @@ subprojects {
     java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
     repositories {
+        mavenLocal()
         mavenCentral()
         maven {
             name = 'NeoForged'
