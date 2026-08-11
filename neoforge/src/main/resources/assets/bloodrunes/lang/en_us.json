@@ -1,0 +1,13 @@
+{
+  "item.bloodrunes.blank_rune": "Erðrún (Blank Rune)",
+  "item.bloodrunes.blank_rune.desc": "§7A blank stone rune, thirsty for blood.§r\n§8Place it on the Runic Anvil to begin.§r",
+  "item.bloodrunes.blood_rune": "Rune of Uruz",
+  "item.bloodrunes.blood_rune.desc": "§7Imbued with primal vitality.§r\n§8Grants life steal on attacks.§r",
+  "item.bloodrunes.courage_rune": "Rune of Tiwaz",
+  "item.bloodrunes.courage_rune.desc": "§7Forged in the heat of near-death battles.§r\n§8Increases damage when health is low.§r",
+  "item.bloodrunes.sacrificial_dagger": "Sacrificial Dagger",
+  "block.bloodrunes.altar": "Runic Anvil",
+  "message.bloodrunes.language_learned": "You have learned the ancient Viking language!",
+  "message.bloodrunes.ritual_started": "The altar hums with dark energy...",
+  "message.bloodrunes.ritual_success": "The rune has been transformed!"
+}

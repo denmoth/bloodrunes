@@ -13,8 +13,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class AltarBlock extends BaseEntityBlock {
-    public AltarBlock() {
-        super(BlockBehaviour.Properties.of().requiresCorrectToolForDrops().strength(2.5F));
+    public static final com.mojang.serialization.MapCodec<AltarBlock> CODEC = simpleCodec(AltarBlock::new);
+
+    public AltarBlock(BlockBehaviour.Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override

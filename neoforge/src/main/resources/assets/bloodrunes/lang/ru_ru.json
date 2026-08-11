@@ -1,0 +1,13 @@
+{
+  "item.bloodrunes.blank_rune": "Руна Эрд",
+  "item.bloodrunes.blank_rune.desc": "§7Базовая каменная руна, жаждущая крови.§r\n§8Положите её на рунную наковальню.§r",
+  "item.bloodrunes.blood_rune": "Руна Уруз",
+  "item.bloodrunes.blood_rune.desc": "§7Пропитана первобытной жизненной энергией.§r\n§8Дарует похищение жизни при атаках.§r",
+  "item.bloodrunes.courage_rune": "Руна Тейваз",
+  "item.bloodrunes.courage_rune.desc": "§7Руна бога Тюра, символ самопожертвования.§r\n§8Увеличивает урон при низком здоровье.§r",
+  "item.bloodrunes.sacrificial_dagger": "Жертвенный кинжал",
+  "block.bloodrunes.altar": "Рунная наковальня",
+  "message.bloodrunes.language_learned": "Вы постигли древний язык викингов!",
+  "message.bloodrunes.ritual_started": "Алтарь гудит от темной энергии...",
+  "message.bloodrunes.ritual_success": "Руна была преобразована!"
+}

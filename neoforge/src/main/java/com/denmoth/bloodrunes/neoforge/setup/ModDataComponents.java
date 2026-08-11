@@ -11,7 +11,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.function.Supplier;
 
 public class ModDataComponents {
-    public static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(BloodRunes.MOD_ID);
+    public static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(net.minecraft.core.registries.Registries.DATA_COMPONENT_TYPE, BloodRunes.MOD_ID);
 
     public static final Supplier<DataComponentType<RuneData>> RUNE_DATA = DATA_COMPONENTS.registerComponentType(
             "rune_data",

@@ -40,9 +40,9 @@ public class RitualRecipe implements Recipe<RitualRecipeInput> {
                 
                 buf.writeBoolean(kill.entity().tag().isPresent());
                 if (kill.entity().tag().isPresent()) {
-                    buf.writeResourceLocation(kill.entity().tag().get().location());
+                    net.minecraft.resources.Identifier.STREAM_CODEC.encode(buf, kill.entity().tag().get().location());
                 } else if (kill.entity().entityType().isPresent()) {
-                    buf.writeResourceLocation(kill.entity().entityType().get().unwrapKey().get().location());
+                    net.minecraft.resources.Identifier.STREAM_CODEC.encode(buf, kill.entity().entityType().get().unwrapKey().get().identifier());
                 }
             }
         }
@@ -64,7 +64,7 @@ public class RitualRecipe implements Recipe<RitualRecipeInput> {
                 int count = buf.readVarInt();
                 java.util.Optional<Boolean> isBaby = buf.readBoolean() ? java.util.Optional.of(buf.readBoolean()) : java.util.Optional.empty();
                 boolean isTag = buf.readBoolean();
-                net.minecraft.resources.ResourceLocation loc = buf.readResourceLocation();
+                net.minecraft.resources.Identifier loc = net.minecraft.resources.Identifier.STREAM_CODEC.decode(buf);
                 
                 EntityIngredient entity;
                 if (isTag) {
@@ -115,15 +115,10 @@ public class RitualRecipe implements Recipe<RitualRecipeInput> {
     }
 
     @Override
-    public boolean isSpecial() {
+    public boolean showNotification() {
         return true;
     }
-
-    @Override
-    public boolean showNotification() {
-        return false;
-    }
-
+    
     @Override
     public String group() {
         return "";
@@ -131,17 +126,22 @@ public class RitualRecipe implements Recipe<RitualRecipeInput> {
 
     @Override
     public RecipeSerializer<RitualRecipe> getSerializer() {
-        return com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_SERIALIZER.get();
+        return (RecipeSerializer<RitualRecipe>) com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_SERIALIZER.get();
     }
 
     @Override
     public RecipeType<RitualRecipe> getType() {
-        return com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get();
+        return (RecipeType<RitualRecipe>) com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get();
     }
 
     @Override
-    public PlacementInfo placementInfo() {
-        return PlacementInfo.create(baseRune);
+    public net.minecraft.world.item.crafting.PlacementInfo placementInfo() {
+        return net.minecraft.world.item.crafting.PlacementInfo.create(java.util.List.of(baseRune));
+    }
+
+    @Override
+    public net.minecraft.world.item.crafting.RecipeBookCategory recipeBookCategory() {
+        return net.minecraft.world.item.crafting.RecipeBookCategories.CRAFTING_MISC;
     }
 
     @Override
@@ -149,13 +149,11 @@ public class RitualRecipe implements Recipe<RitualRecipeInput> {
         return List.of();
     }
 
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return null;
-    }
 
     public Ingredient getBaseRune() { return baseRune; }
     public ItemStack getResult() { return result; }
     public double getRadius() { return radius; }
     public List<RitualAlternative> getAlternatives() { return alternatives; }
+
+
 }

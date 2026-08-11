@@ -24,7 +24,7 @@ public class CommandVikingLanguage {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         
         dispatcher.register(Commands.literal("bloodrunes")
-            .requires(source -> source.hasPermission(2))
+            .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
             .then(Commands.literal("language")
                 .then(Commands.argument("targets", EntityArgument.players())
                     .then(Commands.argument("knowsLanguage", BoolArgumentType.bool())

@@ -28,3 +28,11 @@ Thumbs.db
 *.log
 
 local/
+
+neoforge/build/
+neoforge/run/
+common/build/
+compile_errors.txt
+classes.txt
+tmp/
+

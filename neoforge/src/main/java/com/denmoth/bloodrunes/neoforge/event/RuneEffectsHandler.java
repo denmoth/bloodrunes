@@ -11,7 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.minecraft.world.entity.LivingEntity;
 
 @EventBusSubscriber(modid = BloodRunes.MOD_ID)
 public class RuneEffectsHandler {
@@ -47,10 +48,13 @@ public class RuneEffectsHandler {
     }
 
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            if (player.tickCount % 20 != 0) return;
-            
+    public static void onEntityTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+        
+        if (entity.level().isClientSide()) return;
+        if (entity.tickCount % 20 != 0) return;
+
+        if (entity instanceof Player player) {
             boolean knowsLanguage = player.getData(ModAttachments.VIKING_LANGUAGE);
             long currentTime = player.level().getGameTime();
             int buffDuration = knowsLanguage ? 200 : 100;
@@ -65,9 +69,9 @@ public class RuneEffectsHandler {
                     if (runeData.cooldownEndTimestamp() <= currentTime) {
                         if (player.getHealth() / player.getMaxHealth() < 0.3f) {
                             if (slot == EquipmentSlot.FEET) {
-                                player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, buffDuration, 0));
+                                player.addEffect(new MobEffectInstance(MobEffects.SPEED, buffDuration, 0));
                             } else {
-                                player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, buffDuration, 0));
+                                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, buffDuration, 0));
                             }
                             armor.set(ModDataComponents.RUNE_DATA, new ModDataComponents.RuneData("courage_rune", currentTime + 2400));
                         }

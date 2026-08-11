@@ -2,10 +2,6 @@ package com.denmoth.bloodrunes.neoforge.block;
 
 import com.denmoth.bloodrunes.neoforge.setup.ModBlockEntities;
 import com.denmoth.bloodrunes.neoforge.setup.ModItems;
-import com.denmoth.bloodrunes.neoforge.setup.ModRecipes;
-import com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe;
-import com.denmoth.bloodrunes.neoforge.recipe.RitualRecipeInput;
-import com.denmoth.bloodrunes.neoforge.recipe.KilledEntityData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,28 +13,23 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public class AltarBlockEntity extends BlockEntity {
     private ItemStack runeStack = ItemStack.EMPTY;
 
     private boolean ritualActive = false;
     private int ticksActive = 0;
-    
-    private final List<KilledEntityData> kills = new ArrayList<>();
+    private int villagerKills = 0;
+    private int playerKills = 0;
+
+    private int hostileKills = 0;
     private boolean playerWasLowHp = false;
-    private boolean playerDied = false;
 
     public AltarBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntities.ALTAR_BLOCK_ENTITY.get(), pos, blockState);
@@ -51,18 +42,15 @@ public class AltarBlockEntity extends BlockEntity {
     public void setRuneStack(ItemStack stack) {
         this.runeStack = stack;
         this.ritualActive = false;
-        resetRitualState();
+        this.ticksActive = 0;
+        this.villagerKills = 0;
+        this.playerKills = 0;
+        this.hostileKills = 0;
+        this.playerWasLowHp = false;
         setChanged();
         if (level != null) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
-    }
-
-    private void resetRitualState() {
-        this.ticksActive = 0;
-        this.kills.clear();
-        this.playerWasLowHp = false;
-        this.playerDied = false;
     }
 
     @Override
@@ -115,7 +103,6 @@ public class AltarBlockEntity extends BlockEntity {
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, AltarBlockEntity entity) {
         entity.tick();
-        entity.applyBarrierPhysics();
     }
 
     private void tick() {
@@ -130,16 +117,20 @@ public class AltarBlockEntity extends BlockEntity {
                     level.playSound(null, worldPosition, SoundEvents.WARDEN_HEARTBEAT, SoundSource.BLOCKS, 1.5F, 0.5F); // Pitch 0.5 for a deep heartbeat
                 }
 
-                // Check recipe
-                RitualRecipeInput input = new RitualRecipeInput(runeStack, kills, playerWasLowHp, playerDied);
-                Optional<RecipeHolder<RitualRecipe>> recipe = level.getRecipeManager().getRecipeFor(ModRecipes.RITUAL_TYPE.get(), input, level);
-
-                if (recipe.isPresent()) {
-                    completeRitual(recipe.get().value().getResult());
+                if (playerKills >= 1) {
+                    completeRitual(ModItems.BLOOD_RUNE.get().getDefaultInstance());
+                } else if (villagerKills >= 4) {
+                    completeRitual(ModItems.BLOOD_RUNE.get().getDefaultInstance());
+                } else if (hostileKills >= 3 && playerWasLowHp) {
+                    completeRitual(ModItems.COURAGE_RUNE.get().getDefaultInstance());
                 } else if (ticksActive >= 200) { // 10 seconds timeout
                     // Failed!
                     ritualActive = false;
-                    resetRitualState();
+                    ticksActive = 0;
+                    playerKills = 0;
+                    villagerKills = 0;
+                    hostileKills = 0;
+                    playerWasLowHp = false;
                     level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
                     setChanged();
                     level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -147,16 +138,24 @@ public class AltarBlockEntity extends BlockEntity {
             }
         } else {
             ritualActive = false;
-            resetRitualState();
+            ticksActive = 0;
+            playerKills = 0;
+            villagerKills = 0;
+            hostileKills = 0;
+            playerWasLowHp = false;
         }
     }
 
-    public void onMobKilled(LivingEntity victim, @Nullable Player killer) {
+    public void onMobKilled(Player killer, boolean isVillager, boolean isPlayer, boolean isHostile, boolean isLowHp, BlockPos victimPos) {
         if (!runeStack.isEmpty() && runeStack.is(ModItems.BLANK_RUNE.get())) {
             if (!ritualActive) {
                 // Start the ritual on the FIRST kill
                 ritualActive = true;
-                resetRitualState();
+                ticksActive = 0;
+                playerKills = 0;
+                villagerKills = 0;
+                hostileKills = 0;
+                playerWasLowHp = false;
                 setChanged();
                 if (level != null) {
                     level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -164,64 +163,24 @@ public class AltarBlockEntity extends BlockEntity {
             }
 
             if (ritualActive && ticksActive < 200) {
-                if (victim instanceof Player) {
-                    playerDied = true;
-                } else {
-                    kills.add(new KilledEntityData(victim.getType(), victim.isBaby()));
+                boolean accepted = false;
+                if (isPlayer) {
+                    playerKills++;
+                    accepted = true;
+                } else if (isVillager) {
+                    villagerKills++;
+                    accepted = true;
+                } else if (isHostile) {
+                    hostileKills++;
+                    if (isLowHp) {
+                        playerWasLowHp = true;
+                    }
+                    accepted = true;
                 }
                 
-                if (killer != null && killer.getHealth() <= 3.0F) {
-                    playerWasLowHp = true;
-                }
-                
-                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-                    com.denmoth.bloodrunes.neoforge.network.SpawnSoulParticlesPacket packet = new com.denmoth.bloodrunes.neoforge.network.SpawnSoulParticlesPacket(victim.blockPosition(), worldPosition);
+                if (accepted && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    com.denmoth.bloodrunes.neoforge.network.SpawnSoulParticlesPacket packet = new com.denmoth.bloodrunes.neoforge.network.SpawnSoulParticlesPacket(victimPos, worldPosition);
                     net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingChunk(serverLevel, new net.minecraft.world.level.ChunkPos(worldPosition.getX() >> 4, worldPosition.getZ() >> 4), packet);
-                }
-            }
-        }
-    }
-
-    private void applyBarrierPhysics() {
-        if (!ritualActive || level == null) return;
-        
-        // Find current recipe to get radius
-        double r = 8.0; // Default radius
-        RitualRecipeInput input = new RitualRecipeInput(runeStack, kills, playerWasLowHp, playerDied);
-        List<RecipeHolder<RitualRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.RITUAL_TYPE.get());
-        for (RecipeHolder<RitualRecipe> holder : recipes) {
-            if (holder.value().getBaseRune().test(runeStack)) {
-                r = holder.value().getRadius();
-                break; // Just use the first matching base rune radius
-            }
-        }
-
-        AABB box = new AABB(worldPosition).inflate(r + 2.0);
-        List<net.minecraft.world.entity.Entity> entities = level.getEntitiesOfClass(net.minecraft.world.entity.Entity.class, box, 
-            e -> e instanceof net.minecraft.world.entity.LivingEntity || e instanceof net.minecraft.world.entity.projectile.Projectile);
-        
-        double cx = worldPosition.getX() + 0.5;
-        double cy = worldPosition.getY() + 0.5;
-        double cz = worldPosition.getZ() + 0.5;
-        
-        for (net.minecraft.world.entity.Entity entity : entities) {
-            double dx = entity.getX() - cx;
-            double dy = entity.getY() - cy;
-            double dz = entity.getZ() - cz;
-            
-            // 2D distance for cylinder
-            double distSq = dx * dx + dz * dz;
-            if (distSq > r * r && distSq < (r + 2.0) * (r + 2.0)) {
-                double dist = Math.sqrt(distSq);
-                double nx = dx / dist;
-                double nz = dz / dist;
-                
-                double oldDistSq = (entity.xOld - cx) * (entity.xOld - cx) + (entity.zOld - cz) * (entity.zOld - cz);
-                if (oldDistSq <= r * r) {
-                    entity.setPos(cx + nx * r, entity.getY(), cz + nz * r);
-                    entity.setDeltaMovement(0, entity.getDeltaMovement().y, 0);
-                } else {
-                    entity.setDeltaMovement(nx * 1.5, 0.2, nz * 1.5);
                 }
             }
         }
@@ -230,7 +189,11 @@ public class AltarBlockEntity extends BlockEntity {
     private void completeRitual(ItemStack result) {
         this.runeStack = result.copy();
         this.ritualActive = false;
-        resetRitualState();
+        this.ticksActive = 0;
+        this.playerKills = 0;
+        this.villagerKills = 0;
+        this.hostileKills = 0;
+        this.playerWasLowHp = false;
         
         if (level != null) {
             level.playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 1.0F, 1.0F);

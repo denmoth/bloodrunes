@@ -12,5 +12,5 @@ public class ModAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, BloodRunes.MOD_ID);
 
     public static final Supplier<AttachmentType<Boolean>> VIKING_LANGUAGE = ATTACHMENT_TYPES.register("viking_language",
-            () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).build());
+            () -> AttachmentType.builder(() -> false).serialize(com.mojang.serialization.Codec.BOOL.fieldOf("knows_language")).build());
 }

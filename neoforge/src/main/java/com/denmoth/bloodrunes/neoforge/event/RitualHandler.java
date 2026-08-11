@@ -17,27 +17,18 @@ public class RitualHandler {
     
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
-        if (event.getEntity() instanceof Player victimPlayer) {
-            // Check if player died during ritual
-            Level level = victimPlayer.level();
-            if (!level.isClientSide) {
-                BlockPos killPos = victimPlayer.blockPosition();
-                BlockPos.betweenClosedStream(
-                        killPos.offset(-8, -8, -8),
-                        killPos.offset(8, 8, 8)
-                ).forEach(pos -> {
-                    if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
-                        altar.onMobKilled(victimPlayer, null); // no specific killer needed for player death
-                    }
-                });
-            }
-        }
-        
         if (event.getSource().getEntity() instanceof Player killer) {
+            
+            // Language check temporarily removed so anyone can do the ritual
+
             LivingEntity victim = event.getEntity();
             Level level = victim.level();
             
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
+                boolean isHostile = victim instanceof Monster;
+                boolean isVillager = victim instanceof net.minecraft.world.entity.npc.villager.Villager;
+                boolean isPlayer = victim instanceof Player;
+                boolean isLowHp = killer.getHealth() / killer.getMaxHealth() < 0.3f;
                 BlockPos killPos = victim.blockPosition();
 
                 // Search for AltarBlockEntity within 8 blocks
@@ -46,7 +37,7 @@ public class RitualHandler {
                         killPos.offset(8, 8, 8)
                 ).forEach(pos -> {
                     if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
-                        altar.onMobKilled(victim, killer);
+                        altar.onMobKilled(killer, isVillager, isPlayer, isHostile, isLowHp, killPos);
                     }
                 });
             }
