@@ -17,18 +17,27 @@ public class RitualHandler {
     
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
-        if (event.getSource().getEntity() instanceof Player killer) {
-            
-            // Check if killer knows the language
-            if (!killer.getData(ModAttachments.VIKING_LANGUAGE)) {
-                return;
+        if (event.getEntity() instanceof Player victimPlayer) {
+            // Check if player died during ritual
+            Level level = victimPlayer.level();
+            if (!level.isClientSide) {
+                BlockPos killPos = victimPlayer.blockPosition();
+                BlockPos.betweenClosedStream(
+                        killPos.offset(-8, -8, -8),
+                        killPos.offset(8, 8, 8)
+                ).forEach(pos -> {
+                    if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
+                        altar.onMobKilled(victimPlayer, null); // no specific killer needed for player death
+                    }
+                });
             }
-
+        }
+        
+        if (event.getSource().getEntity() instanceof Player killer) {
             LivingEntity victim = event.getEntity();
             Level level = victim.level();
             
             if (!level.isClientSide) {
-                boolean isHostile = victim instanceof Monster;
                 BlockPos killPos = victim.blockPosition();
 
                 // Search for AltarBlockEntity within 8 blocks
@@ -37,7 +46,7 @@ public class RitualHandler {
                         killPos.offset(8, 8, 8)
                 ).forEach(pos -> {
                     if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
-                        altar.onMobKilled(killer, isHostile);
+                        altar.onMobKilled(victim, killer);
                     }
                 });
             }

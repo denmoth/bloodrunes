@@ -1,0 +1,20 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:blood_rune",
+    "count": 1
+  },
+  "radius": 4.0,
+  "duration_ticks": 200,
+  "alternatives": [
+    {
+      "kills": [
+        { "entity": "minecraft:villager", "count": 4 }
+      ]
+    },
+    {
+      "requires_player_death": true
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:courage_rune",
+    "count": 1
+  },
+  "radius": 8.0,
+  "duration_ticks": 200,
+  "alternatives": [
+    {
+      "kills": [
+        { "entity": "minecraft:zombie", "count": 3 }
+      ],
+      "requires_low_hp": true
+    }
+  ]
+}
