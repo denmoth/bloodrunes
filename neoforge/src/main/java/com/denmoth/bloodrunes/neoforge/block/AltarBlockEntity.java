@@ -82,8 +82,15 @@ public class AltarBlockEntity extends BlockEntity {
     public static void clientTick(Level level, BlockPos pos, BlockState state, AltarBlockEntity entity) {
         if (!entity.runeStack.isEmpty() && entity.runeStack.is(ModItems.BLANK_RUNE.get())) {
             if (entity.ritualActive) {
-                // Draw circle radius 8
+                // Draw cylinder radius 8, height -8 to +8
                 for (int i = 0; i < 360; i += 15) { // every 15 degrees
+                    if (level.getRandom().nextFloat() < 0.2f) {
+                        double rad = Math.toRadians(i);
+                        double x = pos.getX() + 0.5 + Math.cos(rad) * 8.0;
+                        double z = pos.getZ() + 0.5 + Math.sin(rad) * 8.0;
+                        double yOffset = (level.getRandom().nextDouble() * 16.0) - 8.0;
+                        level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, x, pos.getY() + 0.5 + yOffset, z, 0, 0.02, 0);
+                    }
                     if (level.getRandom().nextFloat() < 0.1f) {
                         double rad = Math.toRadians(i);
                         double x = pos.getX() + 0.5 + Math.cos(rad) * 8.0;
@@ -118,6 +125,28 @@ public class AltarBlockEntity extends BlockEntity {
                 // Heartbeat sound - deeper and constant pitch
                 if (ticksActive % 30 == 0) {
                     level.playSound(null, worldPosition, SoundEvents.WARDEN_HEARTBEAT, SoundSource.BLOCKS, 1.5F, 0.5F); // Pitch 0.5 for a deep heartbeat
+                }
+
+                // Block mobs from crossing radius 8, y +/- 8
+                net.minecraft.world.phys.AABB bounds = new net.minecraft.world.phys.AABB(
+                        pos.getX() + 0.5 - 9, pos.getY() - 8, pos.getZ() + 0.5 - 9,
+                        pos.getX() + 0.5 + 9, pos.getY() + 9, pos.getZ() + 0.5 + 9
+                );
+                for (net.minecraft.world.entity.Mob mob : level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class, bounds)) {
+                    double dx = mob.getX() - (pos.getX() + 0.5);
+                    double dz = mob.getZ() - (pos.getZ() + 0.5);
+                    double dist = Math.sqrt(dx * dx + dz * dz);
+
+                    if (dist > 7.5 && dist < 8.5) {
+                        double nx = dx / dist;
+                        double nz = dz / dist;
+                        if (dist < 8.0) {
+                            mob.setDeltaMovement(mob.getDeltaMovement().add(-nx * 0.5, 0, -nz * 0.5));
+                        } else {
+                            mob.setDeltaMovement(mob.getDeltaMovement().add(nx * 0.5, 0, nz * 0.5));
+                        }
+                        mob.hurtMarked = true;
+                    }
                 }
 
                 if (playerKills >= 1) {
@@ -205,9 +234,15 @@ public class AltarBlockEntity extends BlockEntity {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
 
             if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-                serverLevel.sendParticles(ParticleTypes.DAMAGE_INDICATOR, 
+                serverLevel.sendParticles(ParticleTypes.SOUL, 
                     worldPosition.getX() + 0.5, worldPosition.getY() + 1.2, worldPosition.getZ() + 0.5, 
-                    40, 0.3, 0.3, 0.3, 0.2);
+                    100, 0.5, 0.5, 0.5, 0.2);
+                serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE, 
+                    worldPosition.getX() + 0.5, worldPosition.getY() + 1.2, worldPosition.getZ() + 0.5, 
+                    50, 0.5, 0.5, 0.5, 0.1);
+                serverLevel.sendParticles(ParticleTypes.ENCHANT, 
+                    worldPosition.getX() + 0.5, worldPosition.getY() + 1.2, worldPosition.getZ() + 0.5, 
+                    100, 1.0, 1.0, 1.0, 0.5);
             }
         }
     }
