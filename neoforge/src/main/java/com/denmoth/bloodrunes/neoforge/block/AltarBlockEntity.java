@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+
 import org.jetbrains.annotations.Nullable;
 
 public class AltarBlockEntity extends BlockEntity {
@@ -57,12 +58,14 @@ public class AltarBlockEntity extends BlockEntity {
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.store("rune", ItemStack.CODEC, runeStack);
+        output.putBoolean("ritualActive", ritualActive);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.runeStack = input.read("rune", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.ritualActive = input.getBooleanOr("ritualActive", false);
     }
 
     @Override

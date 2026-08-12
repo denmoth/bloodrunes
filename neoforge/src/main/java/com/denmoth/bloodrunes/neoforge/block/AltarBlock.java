@@ -68,7 +68,6 @@ public class AltarBlock extends BaseEntityBlock {
                 if (!level.isClientSide()) {
                     altar.setRuneStack(stack.copyWithCount(1));
                     stack.shrink(1);
-                    player.sendSystemMessage(Component.translatable("message.bloodrunes.ritual_started"));
                 }
                 return InteractionResult.SUCCESS;
             }
