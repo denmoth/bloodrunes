@@ -7,17 +7,6 @@
   },
   "elements": [
     {
-      "__comment": "Full-width invisible base to cull neighbor faces",
-      "from": [0, 0, 0], "to": [16, 4, 16],
-      "faces": {
-        "down":  { "uv": [0, 0, 16, 16], "texture": "#body", "cullface": "down" },
-        "north": { "uv": [0, 0, 16,  4], "texture": "#body", "cullface": "north" },
-        "south": { "uv": [0, 0, 16,  4], "texture": "#body", "cullface": "south" },
-        "west":  { "uv": [0, 0, 16,  4], "texture": "#body", "cullface": "west"  },
-        "east":  { "uv": [0, 0, 16,  4], "texture": "#body", "cullface": "east"  }
-      }
-    },
-    {
       "__comment": "Anvil base visible part",
       "from": [2, 0, 2], "to": [14, 4, 14],
       "faces": {

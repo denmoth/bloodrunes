@@ -21,7 +21,8 @@ public class ModBlocks {
             () -> new AltarBlock(BlockBehaviour.Properties.of()
                     .setId(key("altar"))
                     .requiresCorrectToolForDrops()
-                    .strength(2.5F)));
+                    .strength(2.5F)
+                    .noOcclusion()));
 
     public static final net.neoforged.neoforge.registries.DeferredItem<net.minecraft.world.item.BlockItem> ALTAR_ITEM =
             ModItems.ITEMS.registerSimpleBlockItem("altar", () -> ALTAR.get());

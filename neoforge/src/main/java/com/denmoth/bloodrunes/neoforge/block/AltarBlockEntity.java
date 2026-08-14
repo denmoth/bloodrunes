@@ -22,7 +22,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class AltarBlockEntity extends BlockEntity {
-    private ItemStack runeStack = ItemStack.EMPTY;
+    private net.minecraft.core.NonNullList<ItemStack> items = net.minecraft.core.NonNullList.withSize(9, ItemStack.EMPTY);
 
     private boolean ritualActive = false;
     private int ticksActive = 0;
@@ -36,12 +36,79 @@ public class AltarBlockEntity extends BlockEntity {
         super(ModBlockEntities.ALTAR_BLOCK_ENTITY.get(), pos, blockState);
     }
 
-    public ItemStack getRuneStack() {
-        return runeStack;
+    public net.minecraft.core.NonNullList<ItemStack> getItems() {
+        return items;
     }
-
-    public void setRuneStack(ItemStack stack) {
-        this.runeStack = stack;
+    
+    private int getPriority(ItemStack stack) {
+        if (stack.is(net.minecraft.tags.ItemTags.SWORDS) || stack.is(net.minecraft.tags.ItemTags.AXES)
+                || stack.is(net.minecraft.tags.ItemTags.PICKAXES) || stack.is(net.minecraft.tags.ItemTags.SHOVELS)
+                || stack.is(net.minecraft.tags.ItemTags.HOES)
+                || stack.is(net.minecraft.tags.ItemTags.HEAD_ARMOR) || stack.is(net.minecraft.tags.ItemTags.CHEST_ARMOR)
+                || stack.is(net.minecraft.tags.ItemTags.LEG_ARMOR) || stack.is(net.minecraft.tags.ItemTags.FOOT_ARMOR)
+                || stack.getItem() instanceof net.minecraft.world.item.TridentItem
+                || stack.getItem() instanceof net.minecraft.world.item.ShieldItem) {
+            return 3;
+        }
+        if (stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.BLANK_RUNE.get()) || stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.BLOOD_RUNE.get()) || stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.COURAGE_RUNE.get())) {
+            return 2;
+        }
+        return 1;
+    }
+    
+    public boolean addItem(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        
+        int newPrio = getPriority(stack);
+        ItemStack currentCenter = items.get(0);
+        int currentPrio = currentCenter.isEmpty() ? 0 : getPriority(currentCenter);
+        
+        if (newPrio > currentPrio) {
+            // Push current center to circle if not empty
+            if (!currentCenter.isEmpty()) {
+                if (!addToCircle(currentCenter)) return false; // Circle full
+            }
+            items.set(0, stack.copyWithCount(1));
+            onChange();
+            return true;
+        } else {
+            if (addToCircle(stack.copyWithCount(1))) {
+                onChange();
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private boolean addToCircle(ItemStack stack) {
+        for (int i = 1; i < 9; i++) {
+            if (items.get(i).isEmpty()) {
+                items.set(i, stack);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public ItemStack extractLastItem() {
+        for (int i = 8; i >= 1; i--) {
+            if (!items.get(i).isEmpty()) {
+                ItemStack res = items.get(i);
+                items.set(i, ItemStack.EMPTY);
+                onChange();
+                return res;
+            }
+        }
+        if (!items.get(0).isEmpty()) {
+            ItemStack res = items.get(0);
+            items.set(0, ItemStack.EMPTY);
+            onChange();
+            return res;
+        }
+        return ItemStack.EMPTY;
+    }
+    
+    private void onChange() {
         this.ritualActive = false;
         this.ticksActive = 0;
         this.villagerKills = 0;
@@ -54,17 +121,23 @@ public class AltarBlockEntity extends BlockEntity {
         }
     }
 
+    
+
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("rune", ItemStack.CODEC, runeStack);
+        output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), items);
         output.putBoolean("ritualActive", ritualActive);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.runeStack = input.read("rune", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        java.util.List<ItemStack> list = input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).orElse(java.util.Collections.emptyList());
+        this.items.clear();
+        for(int i = 0; i < Math.min(list.size(), 9); i++) {
+            this.items.set(i, list.get(i));
+        }
         this.ritualActive = input.getBooleanOr("ritualActive", false);
     }
 
@@ -80,28 +153,24 @@ public class AltarBlockEntity extends BlockEntity {
     }
 
     public static void clientTick(Level level, BlockPos pos, BlockState state, AltarBlockEntity entity) {
-        if (!entity.runeStack.isEmpty() && entity.runeStack.is(ModItems.BLANK_RUNE.get())) {
+        if (!entity.items.get(0).isEmpty() && entity.items.get(0).is(ModItems.BLANK_RUNE.get())) {
             if (entity.ritualActive) {
-                // Draw cylinder radius 8, height -8 to +8
-                for (int i = 0; i < 360; i += 15) { // every 15 degrees
-                    if (level.getRandom().nextFloat() < 0.2f) {
+                // Draw circle on the ground radius 8 and floating enchant particles
+                for (int i = 0; i < 360; i += 5) {
+                    if (level.getRandom().nextFloat() < 0.3f) {
                         double rad = Math.toRadians(i);
                         double x = pos.getX() + 0.5 + Math.cos(rad) * 8.0;
                         double z = pos.getZ() + 0.5 + Math.sin(rad) * 8.0;
-                        double yOffset = (level.getRandom().nextDouble() * 16.0) - 8.0;
-                        level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, x, pos.getY() + 0.5 + yOffset, z, 0, 0.02, 0);
-                    }
-                    if (level.getRandom().nextFloat() < 0.1f) {
-                        double rad = Math.toRadians(i);
-                        double x = pos.getX() + 0.5 + Math.cos(rad) * 8.0;
-                        double z = pos.getZ() + 0.5 + Math.sin(rad) * 8.0;
-                        level.addParticle(ParticleTypes.ENCHANT, x, pos.getY() + 0.1, z, 0, 0.05, 0);
+                        level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, x, pos.getY() + 1.0, z, 0, 0.05, 0);
+                        if (level.getRandom().nextFloat() < 0.4f) {
+                            level.addParticle(ParticleTypes.ENCHANT, x, pos.getY() + 1.0 + level.getRandom().nextDouble() * 2.5, z, 0, 0.1, 0);
+                        }
                     }
                 }
             } else {
                 // Subtle particles showing it's ready
                 if (level.getRandom().nextFloat() < 0.05f) {
-                    level.addParticle(ParticleTypes.DAMAGE_INDICATOR, 
+                    level.addParticle(ParticleTypes.ENCHANT, 
                         pos.getX() + 0.5 + (level.getRandom().nextFloat() - 0.5) * 0.2, 
                         pos.getY() + 1.2, 
                         pos.getZ() + 0.5 + (level.getRandom().nextFloat() - 0.5) * 0.2, 
@@ -118,7 +187,7 @@ public class AltarBlockEntity extends BlockEntity {
     private void tick() {
         if (level == null || level.isClientSide()) return;
 
-        if (!runeStack.isEmpty() && runeStack.is(ModItems.BLANK_RUNE.get())) {
+        if (!items.get(0).isEmpty() && items.get(0).is(ModItems.BLANK_RUNE.get())) {
             if (ritualActive) {
                 ticksActive++;
 
@@ -127,36 +196,35 @@ public class AltarBlockEntity extends BlockEntity {
                     level.playSound(null, worldPosition, SoundEvents.WARDEN_HEARTBEAT, SoundSource.BLOCKS, 1.5F, 0.5F); // Pitch 0.5 for a deep heartbeat
                 }
 
-                // Block mobs from crossing radius 8, y +/- 8
+                // Block entities from crossing radius 8, y +/- 8
                 net.minecraft.world.phys.AABB bounds = new net.minecraft.world.phys.AABB(
-                        pos.getX() + 0.5 - 9, pos.getY() - 8, pos.getZ() + 0.5 - 9,
-                        pos.getX() + 0.5 + 9, pos.getY() + 9, pos.getZ() + 0.5 + 9
+                        worldPosition.getX() + 0.5 - 9, worldPosition.getY() - 8, worldPosition.getZ() + 0.5 - 9,
+                        worldPosition.getX() + 0.5 + 9, worldPosition.getY() + 9, worldPosition.getZ() + 0.5 + 9
                 );
-                for (net.minecraft.world.entity.Mob mob : level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class, bounds)) {
-                    double dx = mob.getX() - (pos.getX() + 0.5);
-                    double dz = mob.getZ() - (pos.getZ() + 0.5);
+                for (net.minecraft.world.entity.LivingEntity entity : level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, bounds)) {
+                    double dx = entity.getX() - (worldPosition.getX() + 0.5);
+                    double dz = entity.getZ() - (worldPosition.getZ() + 0.5);
                     double dist = Math.sqrt(dx * dx + dz * dz);
 
-                    if (dist > 7.5 && dist < 8.5) {
+                    if (dist > 7.0 && dist < 9.0) {
                         double nx = dx / dist;
                         double nz = dz / dist;
                         if (dist < 8.0) {
-                            mob.setDeltaMovement(mob.getDeltaMovement().add(-nx * 0.5, 0, -nz * 0.5));
+                            entity.setDeltaMovement(entity.getDeltaMovement().add(-nx * 0.8, 0, -nz * 0.8));
                         } else {
-                            mob.setDeltaMovement(mob.getDeltaMovement().add(nx * 0.5, 0, nz * 0.5));
+                            entity.setDeltaMovement(entity.getDeltaMovement().add(nx * 0.8, 0, nz * 0.8));
                         }
-                        mob.hurtMarked = true;
+                        entity.hurtMarked = true;
                     }
                 }
 
                 if (playerKills >= 1) {
-                    completeRitual(ModItems.BLOOD_RUNE.get().getDefaultInstance());
+                    items.set(0, ModItems.BLOOD_RUNE.get().getDefaultInstance()); onChange();
                 } else if (villagerKills >= 4) {
-                    completeRitual(ModItems.BLOOD_RUNE.get().getDefaultInstance());
+                    items.set(0, ModItems.BLOOD_RUNE.get().getDefaultInstance()); onChange();
                 } else if (hostileKills >= 3 && playerWasLowHp) {
-                    completeRitual(ModItems.COURAGE_RUNE.get().getDefaultInstance());
+                    items.set(0, ModItems.COURAGE_RUNE.get().getDefaultInstance()); onChange();
                 } else if (ticksActive >= 200) { // 10 seconds timeout
-                    // Failed!
                     ritualActive = false;
                     ticksActive = 0;
                     playerKills = 0;
@@ -179,7 +247,7 @@ public class AltarBlockEntity extends BlockEntity {
     }
 
     public void onMobKilled(Player killer, boolean isVillager, boolean isPlayer, boolean isHostile, boolean isLowHp, BlockPos victimPos) {
-        if (!runeStack.isEmpty() && runeStack.is(ModItems.BLANK_RUNE.get())) {
+        if (!items.get(0).isEmpty() && items.get(0).is(ModItems.BLANK_RUNE.get())) {
             if (!ritualActive) {
                 // Start the ritual on the FIRST kill
                 ritualActive = true;
@@ -219,7 +287,7 @@ public class AltarBlockEntity extends BlockEntity {
     }
 
     private void completeRitual(ItemStack result) {
-        this.runeStack = result.copy();
+        this.items.set(0, result.copy());
         this.ritualActive = false;
         this.ticksActive = 0;
         this.playerKills = 0;

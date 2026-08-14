@@ -36,6 +36,11 @@ public class AltarBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
+    @Override
+    protected boolean useShapeForLightOcclusion(BlockState state) {
+        return true;
+    }
+
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -45,14 +50,18 @@ public class AltarBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
-            ItemStack inAltar = altar.getRuneStack();
-            if (!inAltar.isEmpty()) {
-                // Take the rune out
+            boolean hasAnyItem = false;
+            for (int i = 0; i < 9; i++) {
+                if (!altar.getItems().get(i).isEmpty()) { hasAnyItem = true; break; }
+            }
+            if (hasAnyItem) {
                 if (!level.isClientSide()) {
-                    if (!player.addItem(inAltar.copy())) {
-                        player.drop(inAltar.copy(), false);
+                    ItemStack extracted = altar.extractLastItem();
+                    if (!extracted.isEmpty()) {
+                        if (!player.addItem(extracted)) {
+                            player.drop(extracted, false);
+                        }
                     }
-                    altar.setRuneStack(ItemStack.EMPTY);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -63,12 +72,30 @@ public class AltarBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
-            // Only accept blank rune
-            if (stack.is(ModItems.BLANK_RUNE.get()) && altar.getRuneStack().isEmpty()) {
-                if (!level.isClientSide()) {
-                    altar.setRuneStack(stack.copyWithCount(1));
-                    stack.shrink(1);
+            if (stack.isEmpty()) {
+                boolean hasAnyItem = false;
+                for (int i = 0; i < 9; i++) {
+                    if (!altar.getItems().get(i).isEmpty()) { hasAnyItem = true; break; }
                 }
+                if (hasAnyItem) {
+                    if (!level.isClientSide()) {
+                        ItemStack extracted = altar.extractLastItem();
+                        if (!extracted.isEmpty()) {
+                            if (!player.addItem(extracted)) {
+                                player.drop(extracted, false);
+                            }
+                        }
+                    }
+                    return InteractionResult.SUCCESS;
+                }
+                return InteractionResult.PASS;
+            }
+            if (!level.isClientSide()) {
+                if (altar.addItem(stack)) {
+                    stack.shrink(1);
+                    return InteractionResult.SUCCESS;
+                }
+            } else {
                 return InteractionResult.SUCCESS;
             }
         }
