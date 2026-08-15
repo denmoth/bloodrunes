@@ -5,8 +5,8 @@ plugins {
 
 dependencies {
     implementation project(":common")
-    // compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.44.0.401"
-    // runtimeOnly "mezz.jei:jei-1.21.1-neoforge:19.44.0.401"
+    compileOnly "mezz.jei:jei-26.2-neoforge-api:30.24.0.165"
+    runtimeOnly "mezz.jei:jei-26.2-neoforge:30.24.0.165"
 }
 
 repositories {

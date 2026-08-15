@@ -1,26 +1,10 @@
 {
   "type": "bloodrunes:ritual",
-  "center_item": {
-    "item": "bloodrunes:blank_rune"
-  },
-  "circle_items": [
-    { "item": "minecraft:gold_ingot" },
-    { "item": "minecraft:gold_ingot" },
-    { "item": "minecraft:gold_ingot" },
-    { "item": "minecraft:gold_ingot" },
-    { "item": "minecraft:emerald" },
-    { "item": "minecraft:emerald" },
-    { "item": "minecraft:emerald" },
-    { "item": "minecraft:emerald" }
-  ],
+  "base_rune": "bloodrunes:blank_rune",
+  "result": { "id": "bloodrunes:fehu_rune", "count": 1 },
   "conditions": [
-    {
-      "type": "bloodrunes:sacrifice"
-    }
+    { "type": "bloodrunes:sacrifice", "item": "minecraft:gold_ingot", "count": 4 },
+    { "type": "bloodrunes:sacrifice", "item": "minecraft:emerald", "count": 4 }
   ],
-  "result": {
-    "id": "bloodrunes:fehu_rune",
-    "count": 1
-  },
-  "ritual_duration": 100
+  "duration_ticks": 100
 }

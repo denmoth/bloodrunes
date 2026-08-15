@@ -8,15 +8,13 @@ import net.neoforged.neoforge.registries.DeferredItem;
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(BloodRunes.MOD_ID);
 
-    public static final DeferredItem<Item> BLANK_RUNE = ITEMS.registerSimpleItem("blank_rune");
-    public static final DeferredItem<Item> BLOOD_RUNE = ITEMS.registerSimpleItem("blood_rune");
-    public static final DeferredItem<Item> COURAGE_RUNE = ITEMS.registerSimpleItem("courage_rune");
+    public static final DeferredItem<Item> BLANK_RUNE = ITEMS.registerItem("blank_rune", Item::new);
     
     // The 6 new runes from the design doc
-    public static final DeferredItem<Item> URUZ_RUNE = ITEMS.registerSimpleItem("uruz_rune");
-    public static final DeferredItem<Item> FEHU_RUNE = ITEMS.registerSimpleItem("fehu_rune");
-    public static final DeferredItem<Item> BERKANO_RUNE = ITEMS.registerSimpleItem("berkano_rune");
-    public static final DeferredItem<Item> HAGALAZ_RUNE = ITEMS.registerSimpleItem("hagalaz_rune");
-    public static final DeferredItem<Item> WUNJO_RUNE = ITEMS.registerSimpleItem("wunjo_rune");
-    public static final DeferredItem<Item> DAGAZ_RUNE = ITEMS.registerSimpleItem("dagaz_rune");
+    public static final DeferredItem<Item> URUZ_RUNE = ITEMS.registerItem("uruz_rune", Item::new);
+    public static final DeferredItem<Item> FEHU_RUNE = ITEMS.registerItem("fehu_rune", Item::new);
+    public static final DeferredItem<Item> BERKANO_RUNE = ITEMS.registerItem("berkano_rune", Item::new);
+    public static final DeferredItem<Item> HAGALAZ_RUNE = ITEMS.registerItem("hagalaz_rune", Item::new);
+    public static final DeferredItem<Item> WUNJO_RUNE = ITEMS.registerItem("wunjo_rune", Item::new);
+    public static final DeferredItem<Item> DAGAZ_RUNE = ITEMS.registerItem("dagaz_rune", Item::new);
 }

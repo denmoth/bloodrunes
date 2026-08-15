@@ -9,5 +9,12 @@
   "block.bloodrunes.altar": "Рунная наковальня",
   "message.bloodrunes.language_learned": "Вы постигли древний язык викингов!",
   "message.bloodrunes.ritual_started": "Алтарь гудит от темной энергии...",
-  "message.bloodrunes.ritual_success": "Руна была преобразована!"
+  "message.bloodrunes.ritual_success": "Ритуал был завершен!",
+  "item.bloodrunes.uruz_rune": "Руна Уруз (Тур)",
+  "item.bloodrunes.fehu_rune": "Руна Феху (Богатство)",
+  "item.bloodrunes.berkano_rune": "Руна Беркано (Перерождение)",
+  "item.bloodrunes.hagalaz_rune": "Руна Хагалаз (Град)",
+  "item.bloodrunes.wunjo_rune": "Руна Вуньо (Радость)",
+  "item.bloodrunes.dagaz_rune": "Руна Дагаз (Рассвет)",
+  "gui.jei.category.bloodrunes.ritual": "Ритуалы"
 }

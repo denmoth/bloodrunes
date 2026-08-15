@@ -22,7 +22,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class AltarBlockEntity extends BlockEntity {
-    private net.minecraft.core.NonNullList<ItemStack> items = net.minecraft.core.NonNullList.withSize(9, ItemStack.EMPTY);
+    private net.minecraft.core.NonNullList<ItemStack> items = net.minecraft.core.NonNullList.withSize(10, ItemStack.EMPTY);
 
     private boolean ritualActive = false;
     private int ticksActive = 0;
@@ -47,32 +47,42 @@ public class AltarBlockEntity extends BlockEntity {
                 || stack.is(net.minecraft.tags.ItemTags.HEAD_ARMOR) || stack.is(net.minecraft.tags.ItemTags.CHEST_ARMOR)
                 || stack.is(net.minecraft.tags.ItemTags.LEG_ARMOR) || stack.is(net.minecraft.tags.ItemTags.FOOT_ARMOR)
                 || stack.getItem() instanceof net.minecraft.world.item.TridentItem
-                || stack.getItem() instanceof net.minecraft.world.item.ShieldItem) {
+                || stack.getItem() instanceof net.minecraft.world.item.ShieldItem
+                || stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.BLANK_RUNE.get())) {
             return 3;
         }
-        if (stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.BLANK_RUNE.get()) || stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.BLOOD_RUNE.get()) || stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.COURAGE_RUNE.get())) {
+        net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (id.getPath().endsWith("_rune") && !id.getPath().equals("blank_rune")) {
             return 2;
         }
         return 1;
     }
     
-    public boolean addItem(ItemStack stack) {
+    public boolean addItem(ItemStack stack, Player player) {
         if (stack.isEmpty()) return false;
         
         int newPrio = getPriority(stack);
-        ItemStack currentCenter = items.get(0);
-        int currentPrio = currentCenter.isEmpty() ? 0 : getPriority(currentCenter);
         
-        if (newPrio > currentPrio) {
-            // Push current center to circle if not empty
-            if (!currentCenter.isEmpty()) {
-                if (!addToCircle(currentCenter)) return false; // Circle full
+        if (newPrio == 3) {
+            if (items.get(0).isEmpty()) {
+                items.set(0, stack.copyWithCount(1));
+                stack.shrink(1);
+                interactedPlayers.add(player.getUUID());
+                onChange();
+                return true;
             }
-            items.set(0, stack.copyWithCount(1));
-            onChange();
-            return true;
+        } else if (newPrio == 2) {
+            if (items.get(9).isEmpty()) {
+                items.set(9, stack.copyWithCount(1));
+                stack.shrink(1);
+                interactedPlayers.add(player.getUUID());
+                onChange();
+                return true;
+            }
         } else {
-            if (addToCircle(stack.copyWithCount(1))) {
+            if (addToCircle(stack)) {
+                stack.shrink(1);
+                interactedPlayers.add(player.getUUID());
                 onChange();
                 return true;
             }
@@ -83,33 +93,43 @@ public class AltarBlockEntity extends BlockEntity {
     private boolean addToCircle(ItemStack stack) {
         for (int i = 1; i < 9; i++) {
             if (items.get(i).isEmpty()) {
-                items.set(i, stack);
+                items.set(i, stack.copyWithCount(1));
                 return true;
             }
         }
         return false;
     }
     
-    public ItemStack extractLastItem() {
-        for (int i = 8; i >= 1; i--) {
-            if (!items.get(i).isEmpty()) {
-                ItemStack res = items.get(i);
-                items.set(i, ItemStack.EMPTY);
+    public void removeItem(int slot, Player player) {
+        if (!items.get(slot).isEmpty()) {
+            ItemStack stack = items.get(slot).copy();
+            items.set(slot, ItemStack.EMPTY);
+            if (!level.isClientSide()) {
+                if (ritualActive) {
+                    // Punish the player for interrupting the ritual
+                    if (player instanceof net.minecraft.server.level.ServerPlayer sp && level instanceof net.minecraft.server.level.ServerLevel sl) {
+                        sl.getServer().getCommands().performPrefixedCommand(sp.createCommandSourceStack().withPosition(player.position()), "summon lightning_bolt");
+                    }
+                    cancelRitual(); // This triggers the extinguish sound and resets state
+                }
+                
+                net.minecraft.world.entity.item.ItemEntity itemEntity = new net.minecraft.world.entity.item.ItemEntity(
+                    level, worldPosition.getX() + 0.5, worldPosition.getY() + 1.0, worldPosition.getZ() + 0.5, stack
+                );
+                level.addFreshEntity(itemEntity);
                 onChange();
-                return res;
             }
         }
-        if (!items.get(0).isEmpty()) {
-            ItemStack res = items.get(0);
-            items.set(0, ItemStack.EMPTY);
-            onChange();
-            return res;
-        }
-        return ItemStack.EMPTY;
     }
     
     private java.util.List<com.denmoth.bloodrunes.neoforge.recipe.KilledEntityData> recordedKills = new java.util.ArrayList<>();
     private boolean playerDied = false;
+    private final java.util.Set<java.util.UUID> interactedPlayers = new java.util.HashSet<>();
+    private int duration = 600;
+
+    public boolean isRitualActive() { return ritualActive; }
+    public int getTicksActive() { return ticksActive; }
+    public int getDuration() { return duration; }
 
     private void onChange() {
         this.ritualActive = false;
@@ -139,7 +159,7 @@ public class AltarBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         java.util.List<ItemStack> list = input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).orElse(java.util.Collections.emptyList());
         this.items.clear();
-        for(int i = 0; i < Math.min(list.size(), 9); i++) {
+        for(int i = 0; i < Math.min(list.size(), 10); i++) {
             this.items.set(i, list.get(i));
         }
         this.ritualActive = input.getBooleanOr("ritualActive", false);
@@ -162,17 +182,38 @@ public class AltarBlockEntity extends BlockEntity {
     public static void clientTick(Level level, BlockPos pos, BlockState state, AltarBlockEntity entity) {
         if (!entity.items.get(0).isEmpty()) {
             if (entity.ritualActive) {
-                // Draw circle on the ground radius 8 and floating enchant particles
+                entity.ticksActive++; // Sync visually
+                
+                float progress = 0.0f;
+                if (entity.duration > 0) {
+                    progress = Math.min(1.0f, (float) entity.ticksActive / entity.duration);
+                }
+                
+                // Particle circle expands at start, holds, and collapses at end
+                double currentRadius = 8.0;
+                if (progress < 0.1f) {
+                    currentRadius = 8.0 * (progress / 0.1f); // Expand over first 10%
+                } else if (progress > 0.9f) {
+                    currentRadius = 8.0 * ((1.0f - progress) / 0.1f); // Collapse over last 10%
+                }
+
+                // Draw circle on the ground radius and floating enchant particles
                 for (int i = 0; i < 360; i += 5) {
                     if (level.getRandom().nextFloat() < 0.3f) {
                         double rad = Math.toRadians(i);
-                        double x = pos.getX() + 0.5 + Math.cos(rad) * 8.0;
-                        double z = pos.getZ() + 0.5 + Math.sin(rad) * 8.0;
-                        level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, x, pos.getY() + 1.0, z, 0, 0.05, 0);
+                        double cx = pos.getX() + 0.5 + Math.cos(rad) * currentRadius;
+                        double cz = pos.getZ() + 0.5 + Math.sin(rad) * currentRadius;
+                        level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME, cx, pos.getY() + 1.0, cz, 0, 0.05, 0);
                         if (level.getRandom().nextFloat() < 0.4f) {
-                            level.addParticle(ParticleTypes.ENCHANT, x, pos.getY() + 1.0 + level.getRandom().nextDouble() * 2.5, z, 0, 0.1, 0);
+                            level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, cx, pos.getY() + 1.0 + level.getRandom().nextDouble() * 2.5, cz, 0, 0.1, 0);
                         }
                     }
+                }
+
+                if (level.getRandom().nextFloat() < 0.1f) {
+                    level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL, 
+                        pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 
+                        0, 0.05, 0);
                 }
             } else {
                 // Subtle particles showing it's ready
@@ -203,7 +244,7 @@ public class AltarBlockEntity extends BlockEntity {
             }
             
             com.denmoth.bloodrunes.neoforge.recipe.RitualRecipeInput input = new com.denmoth.bloodrunes.neoforge.recipe.RitualRecipeInput(
-                items.get(0), circleItems, recordedKills, playerWasLowHp, playerDied, ticksActive, worldPosition
+                items.get(0), circleItems, recordedKills, playerWasLowHp, playerDied, ticksActive, worldPosition, interactedPlayers
             );
 
             if (!ritualActive) {
@@ -212,7 +253,7 @@ public class AltarBlockEntity extends BlockEntity {
                 if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                     recipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
                 }
-                if (recipeOpt.isPresent()) {
+                if (recipeOpt.isPresent() || checkRistublot(input)) {
                     ritualActive = true;
                     ticksActive = 0;
                     setChanged();
@@ -224,12 +265,15 @@ public class AltarBlockEntity extends BlockEntity {
                 ticksActive++;
 
                 // Retrieve recipe to know duration
-                int duration = 600; // Default fallback
                 java.util.Optional<net.minecraft.world.item.crafting.RecipeHolder<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>> currentRecipeOpt = java.util.Optional.empty();
                 if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                     currentRecipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
                     if (currentRecipeOpt.isPresent()) {
-                        duration = currentRecipeOpt.get().value().getDurationTicks();
+                        this.duration = currentRecipeOpt.get().value().getDurationTicks();
+                    } else if (checkRistublot(input)) {
+                        this.duration = 200;
+                    } else {
+                        this.duration = 600;
                     }
                 }
 
@@ -266,20 +310,26 @@ public class AltarBlockEntity extends BlockEntity {
 
                 // Re-evaluate input with new ticksActive
                 input = new com.denmoth.bloodrunes.neoforge.recipe.RitualRecipeInput(
-                    items.get(0), circleItems, recordedKills, playerWasLowHp, playerDied, ticksActive, worldPosition
+                    items.get(0), circleItems, recordedKills, playerWasLowHp, playerDied, ticksActive, worldPosition, interactedPlayers
                 );
                 java.util.Optional<net.minecraft.world.item.crafting.RecipeHolder<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>> recipeOpt = java.util.Optional.empty();
                 if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                     recipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
                 }
                 
-                if (recipeOpt.isEmpty()) {
-                    cancelRitual(); // Conditions no longer met (e.g., someone left circle, storm stopped)
-                    return;
+                if (recipeOpt.isEmpty() && !checkRistublot(input)) {
+                    // Do not cancel early, allow the player to complete the kills within the duration!
+                    // It will cancel at the end if conditions aren't met.
                 }
                 
                 if (ticksActive >= duration) {
-                    completeRitual(recipeOpt.get().value().assemble(input));
+                    if (recipeOpt.isPresent()) {
+                        completeRitual(recipeOpt.get().value().assemble(input));
+                    } else if (checkRistublot(input)) {
+                        completeRitual(assembleRistublot(input));
+                    } else {
+                        cancelRitual();
+                    }
                 }
             }
         } else {
@@ -332,6 +382,9 @@ public class AltarBlockEntity extends BlockEntity {
 
     private void completeRitual(ItemStack result) {
         this.items.set(0, result.copy());
+        for (int i = 1; i < 10; i++) {
+            this.items.set(i, ItemStack.EMPTY);
+        }
         this.ritualActive = false;
         this.ticksActive = 0;
         this.recordedKills.clear();
@@ -356,5 +409,101 @@ public class AltarBlockEntity extends BlockEntity {
                     100, 1.0, 1.0, 1.0, 0.5);
             }
         }
+    }
+    
+    private boolean checkRistublot(com.denmoth.bloodrunes.neoforge.recipe.RitualRecipeInput input) {
+        if (!isRuneCompatible(input.centerItem())) return false;
+        
+        int amethystCount = 0;
+        int echoShardCount = 0;
+        boolean hasRune = false;
+        
+        ItemStack runeStack = items.get(9);
+        if (!runeStack.isEmpty()) {
+            net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(runeStack.getItem());
+            if (id.getPath().endsWith("_rune")) {
+                hasRune = true;
+            }
+        }
+        
+        for (ItemStack stack : input.circleItems()) {
+            if (stack.is(net.minecraft.world.item.Items.AMETHYST_SHARD)) {
+                amethystCount += stack.getCount();
+            } else if (stack.is(net.minecraft.world.item.Items.ECHO_SHARD)) {
+                echoShardCount += stack.getCount();
+            }
+        }
+        if (amethystCount < 4 || echoShardCount < 4 || !hasRune) return false;
+        
+        // Check if nearest player has enough XP
+        if (this.level != null) {
+            Player nearestPlayer = this.level.getNearestPlayer(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, 8.0, false);
+            if (nearestPlayer != null) {
+                int requiredXp = 20;
+                if (input.centerItem().getMaxDamage() > 1000) requiredXp += 5; // Diamond+
+                if (input.centerItem().getMaxDamage() > 2000) requiredXp += 5; // Netherite
+                if (nearestPlayer.experienceLevel >= requiredXp || nearestPlayer.isCreative()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private ItemStack assembleRistublot(com.denmoth.bloodrunes.neoforge.recipe.RitualRecipeInput input) {
+        ItemStack result = input.centerItem().copy();
+        ItemStack runeStack = items.get(9);
+        
+        if (!runeStack.isEmpty()) {
+            result.set(com.denmoth.bloodrunes.neoforge.setup.ModDataComponents.RUNE_DATA.get(), new com.denmoth.bloodrunes.neoforge.setup.ModDataComponents.RuneData(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(runeStack.getItem()).toString(), 0L));
+        }
+        
+        if (this.level != null) {
+            Player nearestPlayer = this.level.getNearestPlayer(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, 8.0, false);
+            if (nearestPlayer != null && !nearestPlayer.isCreative()) {
+                int requiredXp = 20;
+                if (input.centerItem().getMaxDamage() > 1000) requiredXp += 5;
+                if (input.centerItem().getMaxDamage() > 2000) requiredXp += 5;
+                nearestPlayer.giveExperienceLevels(-requiredXp);
+                // Experience sucking particles
+                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    for (int i = 0; i < 20; i++) {
+                        serverLevel.sendParticles(ParticleTypes.ENCHANT, 
+                            nearestPlayer.getX(), nearestPlayer.getY() + 1.0, nearestPlayer.getZ(), 
+                            1, 0, 0, 0, 1.5);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public static boolean isRuneCompatible(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        net.minecraft.world.item.Item item = stack.getItem();
+
+        if (stack.has(net.minecraft.core.component.DataComponents.UNBREAKABLE)) return true;
+
+        if (item instanceof net.minecraft.world.item.ShieldItem) return true;
+        if (item instanceof net.minecraft.world.item.TridentItem) return true;
+        if (item instanceof net.minecraft.world.item.BowItem || item instanceof net.minecraft.world.item.CrossbowItem) return true;
+
+        int durability = stack.getMaxDamage();
+        if (stack.is(net.minecraft.tags.ItemTags.SWORDS) || stack.is(net.minecraft.tags.ItemTags.AXES)
+            || stack.is(net.minecraft.tags.ItemTags.PICKAXES) || stack.is(net.minecraft.tags.ItemTags.SHOVELS)
+            || stack.is(net.minecraft.tags.ItemTags.HOES)) {
+            return durability > 0 && durability >= 1400; // >= diamond tier
+        }
+
+        if (stack.is(net.minecraft.tags.ItemTags.HEAD_ARMOR)) {
+            return durability > 0 && durability >= 330;
+        } else if (stack.is(net.minecraft.tags.ItemTags.CHEST_ARMOR)) {
+            return durability > 0 && durability >= 480;
+        } else if (stack.is(net.minecraft.tags.ItemTags.LEG_ARMOR)) {
+            return durability > 0 && durability >= 450;
+        } else if (stack.is(net.minecraft.tags.ItemTags.FOOT_ARMOR)) {
+            return durability > 0 && durability >= 390;
+        }
+        return false;
     }
 }

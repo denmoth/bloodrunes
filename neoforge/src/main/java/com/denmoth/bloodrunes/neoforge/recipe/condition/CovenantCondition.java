@@ -34,6 +34,7 @@ public record CovenantCondition(int minPlayers, double radius) implements Ritual
         if (input.altarPos() == null) return false;
         AABB bounds = new AABB(input.altarPos()).inflate(radius);
         long playerCount = level.getEntitiesOfClass(Player.class, bounds).size();
+        if (input.interactedPlayers() == null || input.interactedPlayers().size() < minPlayers) return false;
         return playerCount >= minPlayers;
     }
 }

@@ -9,5 +9,12 @@
   "block.bloodrunes.altar": "Runic Anvil",
   "message.bloodrunes.language_learned": "You have learned the ancient Viking language!",
   "message.bloodrunes.ritual_started": "The altar hums with dark energy...",
-  "message.bloodrunes.ritual_success": "The rune has been transformed!"
+  "message.bloodrunes.ritual_success": "The ritual was completed!",
+  "item.bloodrunes.uruz_rune": "Uruz Rune (Aurochs)",
+  "item.bloodrunes.fehu_rune": "Fehu Rune (Wealth)",
+  "item.bloodrunes.berkano_rune": "Berkano Rune (Rebirth)",
+  "item.bloodrunes.hagalaz_rune": "Hagalaz Rune (Hail)",
+  "item.bloodrunes.wunjo_rune": "Wunjo Rune (Joy)",
+  "item.bloodrunes.dagaz_rune": "Dagaz Rune (Dawn)",
+  "gui.jei.category.bloodrunes.ritual": "Rituals"
 }

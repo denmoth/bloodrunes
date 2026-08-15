@@ -15,7 +15,7 @@ public class ModRecipes {
     public static final DeferredRegister<RecipeType<?>> TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, BloodRunes.MOD_ID);
 
     public static final Supplier<RecipeSerializer<RitualRecipe>> RITUAL_SERIALIZER = SERIALIZERS.register("ritual", () -> new RecipeSerializer<>(RitualRecipe.CODEC, RitualRecipe.STREAM_CODEC));
-    public static final Supplier<RecipeSerializer<com.denmoth.bloodrunes.neoforge.recipe.RuneSmithingRecipe>> RUNE_SMITHING_SERIALIZER = SERIALIZERS.register("rune_smithing", () -> new RecipeSerializer<>(com.denmoth.bloodrunes.neoforge.recipe.RuneSmithingRecipe.CODEC, com.denmoth.bloodrunes.neoforge.recipe.RuneSmithingRecipe.STREAM_CODEC));
+
     
     public static final Supplier<RecipeType<RitualRecipe>> RITUAL_TYPE = TYPES.register("ritual", () -> new RecipeType<RitualRecipe>() {
         @Override

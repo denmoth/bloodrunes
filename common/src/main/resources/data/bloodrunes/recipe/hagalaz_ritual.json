@@ -1,22 +1,10 @@
 {
   "type": "bloodrunes:ritual",
-  "center_item": {
-    "item": "bloodrunes:blank_rune"
-  },
-  "circle_items": [],
+  "base_rune": "bloodrunes:blank_rune",
+  "result": { "id": "bloodrunes:hagalaz_rune", "count": 1 },
   "conditions": [
-    {
-      "type": "bloodrunes:storm"
-    },
-    {
-      "type": "bloodrunes:kill",
-      "entity": "minecraft:creeper",
-      "count": 1
-    }
+    { "type": "bloodrunes:storm" },
+    { "type": "bloodrunes:kill", "entity": "minecraft:creeper", "count": 1 }
   ],
-  "result": {
-    "id": "bloodrunes:hagalaz_rune",
-    "count": 1
-  },
-  "ritual_duration": 600
+  "duration_ticks": 600
 }

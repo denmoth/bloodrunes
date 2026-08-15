@@ -1,22 +1,10 @@
 {
   "type": "bloodrunes:ritual",
-  "center_item": {
-    "item": "bloodrunes:blank_rune"
-  },
-  "circle_items": [
-    { "item": "minecraft:bread" },
-    { "item": "minecraft:bread" }
-  ],
+  "base_rune": "bloodrunes:blank_rune",
+  "result": { "id": "bloodrunes:wunjo_rune", "count": 1 },
   "conditions": [
-    {
-      "type": "bloodrunes:covenant",
-      "min_players": 2,
-      "radius": 5.0
-    }
+    { "type": "bloodrunes:covenant" },
+    { "type": "bloodrunes:sacrifice", "item": "minecraft:bread", "count": 2 }
   ],
-  "result": {
-    "id": "bloodrunes:wunjo_rune",
-    "count": 1
-  },
-  "ritual_duration": 600
+  "duration_ticks": 200
 }
