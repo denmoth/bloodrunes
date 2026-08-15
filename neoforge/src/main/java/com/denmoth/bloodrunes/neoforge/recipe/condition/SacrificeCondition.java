@@ -27,6 +27,7 @@ public record SacrificeCondition(Ingredient item, int count) implements RitualCo
 
     @Override
     public boolean matches(RitualRecipeInput input, Level level) {
+        if (item.isEmpty()) return true; // Empty ingredient matches anything/nothing, handled in RitualRecipe
         long matched = input.circleItems().stream().filter(item::test).count();
         return matched >= count;
     }

@@ -223,15 +223,29 @@ public class AltarBlockEntity extends BlockEntity {
             if (ritualActive) {
                 ticksActive++;
 
-                // Heartbeat sound - deeper and constant pitch
-                if (ticksActive % 30 == 0) {
-                    level.playSound(null, worldPosition, SoundEvents.WARDEN_HEARTBEAT, SoundSource.BLOCKS, 1.5F, 0.5F); // Pitch 0.5 for a deep heartbeat
+                // Retrieve recipe to know duration
+                int duration = 600; // Default fallback
+                java.util.Optional<net.minecraft.world.item.crafting.RecipeHolder<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>> currentRecipeOpt = java.util.Optional.empty();
+                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    currentRecipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
+                    if (currentRecipeOpt.isPresent()) {
+                        duration = currentRecipeOpt.get().value().getDurationTicks();
+                    }
                 }
 
-                // Block entities from crossing radius 8, y +/- 8
+                // Heartbeat sound - accelerates as ritual progresses
+                float progress = Math.min(1.0f, (float) ticksActive / duration);
+                int heartbeatInterval = Math.max(10, (int) (40 - (progress * 30))); // 40 ticks at start, down to 10 at end
+                float pitch = 0.5f + (progress * 0.5f); // Pitch increases slightly
+
+                if (ticksActive % heartbeatInterval == 0) {
+                    level.playSound(null, worldPosition, SoundEvents.WARDEN_HEARTBEAT, SoundSource.BLOCKS, 1.5F, pitch);
+                }
+
+                // Block entities from crossing radius 8, y +12 / -8
                 net.minecraft.world.phys.AABB bounds = new net.minecraft.world.phys.AABB(
                         worldPosition.getX() + 0.5 - 9, worldPosition.getY() - 8, worldPosition.getZ() + 0.5 - 9,
-                        worldPosition.getX() + 0.5 + 9, worldPosition.getY() + 9, worldPosition.getZ() + 0.5 + 9
+                        worldPosition.getX() + 0.5 + 9, worldPosition.getY() + 12, worldPosition.getZ() + 0.5 + 9
                 );
                 for (net.minecraft.world.entity.LivingEntity entity : level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, bounds)) {
                     double dx = entity.getX() - (worldPosition.getX() + 0.5);
@@ -259,12 +273,13 @@ public class AltarBlockEntity extends BlockEntity {
                     recipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
                 }
                 
-                if (recipeOpt.isPresent()) {
+                if (recipeOpt.isEmpty()) {
+                    cancelRitual(); // Conditions no longer met (e.g., someone left circle, storm stopped)
+                    return;
+                }
+                
+                if (ticksActive >= duration) {
                     completeRitual(recipeOpt.get().value().assemble(input));
-                } else {
-                    if (ticksActive >= 600) {
-                        cancelRitual();
-                    }
                 }
             }
         } else {
