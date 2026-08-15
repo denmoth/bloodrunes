@@ -59,7 +59,7 @@ public class AltarBlockEntityRenderer implements BlockEntityRenderer<AltarBlockE
         // Center item
         if (state.hasItem[0] && !state.itemStates[0].isEmpty()) {
             poseStack.pushPose();
-            poseStack.translate(0.5D, 1.25D + Math.sin(renderTime * 0.08) * 0.03D, 0.5D);
+            poseStack.translate(0.5D, 1.25D + Math.sin(renderTime * 0.08) * 0.15D, 0.5D);
             poseStack.mulPose(Axis.YP.rotationDegrees(renderTime * 2.0F));
             poseStack.scale(0.75f, 0.75f, 0.75f);
             state.itemStates[0].submit(poseStack, collector, 15728880, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, 0);
@@ -81,7 +81,7 @@ public class AltarBlockEntityRenderer implements BlockEntityRenderer<AltarBlockE
                     double rad = Math.toRadians(baseAngle);
                     double cx = 0.5D + Math.cos(rad) * 0.45D;
                     double cz = 0.5D + Math.sin(rad) * 0.45D;
-                    double cy = 1.35D + Math.sin(renderTime * 0.06 + idx * 0.8) * 0.03D;
+                    double cy = 1.35D + Math.sin(renderTime * 0.06 + idx * 0.8) * 0.15D;
                     
                     poseStack.translate(cx, cy, cz);
                     poseStack.mulPose(Axis.YP.rotationDegrees(renderTime * 3.0F));
