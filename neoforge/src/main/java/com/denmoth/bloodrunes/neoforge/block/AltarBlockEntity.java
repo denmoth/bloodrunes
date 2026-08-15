@@ -474,6 +474,7 @@ public class AltarBlockEntity extends BlockEntity {
         
         if (this.level != null) {
             Player nearestPlayer = this.level.getNearestPlayer(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, 8.0, false);
+            if (nearestPlayer != null && !nearestPlayer.isCreative()) {
                 int runeTier = 1;
                 if (!runeStack.isEmpty()) {
                     net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(runeStack.getItem());
