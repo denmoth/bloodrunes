@@ -1,0 +1,23 @@
+{
+  "type": "bloodrunes:ritual",
+  "center_item": {
+    "item": "bloodrunes:blank_rune"
+  },
+  "circle_items": [
+    { "item": "minecraft:ender_pearl" },
+    { "item": "minecraft:ender_pearl" },
+    { "item": "minecraft:ender_pearl" }
+  ],
+  "conditions": [
+    {
+      "type": "bloodrunes:kill",
+      "entity": "minecraft:enderman",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "bloodrunes:dagaz_rune",
+    "count": 1
+  },
+  "ritual_duration": 600
+}

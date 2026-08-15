@@ -1,17 +1,20 @@
 package com.denmoth.bloodrunes.neoforge.recipe;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
 import java.util.List;
 
-public record RitualRecipeInput(ItemStack rune, List<KilledEntityData> kills, boolean isLowHp, boolean playerDied) implements RecipeInput {
+public record RitualRecipeInput(ItemStack centerItem, List<ItemStack> circleItems, List<KilledEntityData> kills, boolean isLowHp, boolean playerDied, int ticksActive, BlockPos altarPos) implements RecipeInput {
     @Override
     public ItemStack getItem(int index) {
-        return index == 0 ? rune : ItemStack.EMPTY;
+        if (index == 0) return centerItem;
+        if (index - 1 < circleItems.size()) return circleItems.get(index - 1);
+        return ItemStack.EMPTY;
     }
 
     @Override
     public int size() {
-        return 1;
+        return 1 + circleItems.size();
     }
-}
+}

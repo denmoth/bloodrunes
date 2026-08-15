@@ -4,18 +4,14 @@
     "item": "bloodrunes:blank_rune"
   },
   "result": {
-    "id": "bloodrunes:courage_rune",
+    "id": "bloodrunes:blood_rune",
     "count": 1
   },
   "conditions": [
     {
       "type": "bloodrunes:kill",
-      "entity": "minecraft:zombie",
-      "count": 3
-    },
-    {
-      "type": "bloodrunes:trial",
-      "low_hp_survived": true
+      "entity": "minecraft:player",
+      "count": 1
     }
   ]
 }

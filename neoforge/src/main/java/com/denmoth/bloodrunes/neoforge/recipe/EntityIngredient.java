@@ -23,6 +23,29 @@ public record EntityIngredient(Optional<TagKey<EntityType<?>>> tag, Optional<Hol
         return com.mojang.serialization.DataResult.error(() -> "Invalid EntityIngredient");
     });
 
+    public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, EntityIngredient> STREAM_CODEC = net.minecraft.network.codec.StreamCodec.of(
+            (buf, ing) -> {
+                if (ing.tag().isPresent()) {
+                    buf.writeBoolean(true);
+                    Identifier.STREAM_CODEC.encode(buf, ing.tag().get().location());
+                } else if (ing.entityType().isPresent()) {
+                    buf.writeBoolean(false);
+                    Identifier.STREAM_CODEC.encode(buf, ing.entityType().get().unwrapKey().get().identifier());
+                } else {
+                    throw new IllegalStateException("Invalid EntityIngredient");
+                }
+            },
+            buf -> {
+                boolean isTag = buf.readBoolean();
+                Identifier loc = Identifier.STREAM_CODEC.decode(buf);
+                if (isTag) {
+                    return new EntityIngredient(Optional.of(TagKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE, loc)), Optional.empty());
+                } else {
+                    return new EntityIngredient(Optional.empty(), BuiltInRegistries.ENTITY_TYPE.getOptional(loc).map(BuiltInRegistries.ENTITY_TYPE::wrapAsHolder));
+                }
+            }
+    );
+
     public boolean test(EntityType<?> type) {
         if (tag.isPresent()) return type.builtInRegistryHolder().is(tag.get());
         if (entityType.isPresent()) return type == entityType.get().value();

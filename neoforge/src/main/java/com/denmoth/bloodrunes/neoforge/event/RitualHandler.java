@@ -37,7 +37,7 @@ public class RitualHandler {
                         killPos.offset(8, 8, 8)
                 ).forEach(pos -> {
                     if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
-                        altar.onMobKilled(killer, isVillager, isPlayer, isHostile, isLowHp, killPos);
+                        altar.onMobKilled(killer, isVillager, isPlayer, isHostile, isLowHp, killPos, event.getEntity());
                     }
                 });
             }

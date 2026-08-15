@@ -1,0 +1,18 @@
+{
+  "type": "bloodrunes:ritual",
+  "center_item": {
+    "item": "bloodrunes:blank_rune"
+  },
+  "circle_items": [],
+  "conditions": [
+    {
+      "type": "bloodrunes:trial",
+      "requires_player_death": true
+    }
+  ],
+  "result": {
+    "id": "bloodrunes:berkano_rune",
+    "count": 1
+  },
+  "ritual_duration": 600
+}
