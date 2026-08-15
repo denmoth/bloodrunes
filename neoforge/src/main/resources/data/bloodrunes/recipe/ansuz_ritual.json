@@ -1,0 +1,16 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:ansuz_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:experience_bottle",
+      "count": 20
+    }
+  ],
+  "duration_ticks": 200
+}

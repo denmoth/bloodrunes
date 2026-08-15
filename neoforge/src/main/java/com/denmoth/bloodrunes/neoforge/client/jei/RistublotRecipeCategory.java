@@ -25,11 +25,9 @@ public class RistublotRecipeCategory implements IRecipeCategory<RitualRecipe> {
     private final IDrawableStatic slotDrawable;
     private final IGuiHelper guiHelper;
 
-    public static final net.minecraft.resources.Identifier TEXTURE = net.minecraft.resources.Identifier.fromNamespaceAndPath("bloodrunes", "textures/gui/jei_ritual.png");
-
     public RistublotRecipeCategory(IGuiHelper guiHelper) {
         this.guiHelper = guiHelper;
-        this.background = guiHelper.drawableBuilder(TEXTURE, 0, 0, 176, 85).build();
+        this.background = guiHelper.createBlankDrawable(160, 140);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.ALTAR_ITEM.get()));
         this.title = Component.translatable("gui.bloodrunes.category.ristublot");
         this.slotDrawable = guiHelper.getSlotDrawable();
@@ -131,7 +129,7 @@ public class RistublotRecipeCategory implements IRecipeCategory<RitualRecipe> {
         // Draw Altar at center
         int centerX = 72;
         int centerY = 52;
-        int altarY = centerY + (int) (Math.sin(time * 0.08) * 3);
+        int altarY = centerY;
         guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.ALTAR_ITEM.get())).draw(graphics, centerX, altarY);
 
         // Draw orbiting ingredients using JEI's currently displayed slot items

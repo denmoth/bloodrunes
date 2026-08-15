@@ -1,0 +1,15 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:berkano_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:event",
+      "event": "bloodrunes:die_on_altar"
+    }
+  ],
+  "duration_ticks": 6000
+}

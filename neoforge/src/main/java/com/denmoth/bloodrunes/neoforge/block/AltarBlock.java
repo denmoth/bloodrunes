@@ -59,8 +59,12 @@ public class AltarBlock extends BaseEntityBlock {
                     ItemStack extracted = ItemStack.EMPTY;
                     if (altar.isRitualActive()) {
                         // Punish the player for interrupting the ritual
-                        if (player instanceof net.minecraft.server.level.ServerPlayer sp && level instanceof net.minecraft.server.level.ServerLevel sl) {
-                            sl.getServer().getCommands().performPrefixedCommand(sp.createCommandSourceStack().withPosition(new net.minecraft.world.phys.Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)), "summon lightning_bolt");
+                        if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                                net.minecraft.world.entity.Entity entity = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(net.minecraft.resources.Identifier.withDefaultNamespace("lightning_bolt")).get().value().create(sl, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+                                if (entity instanceof net.minecraft.world.entity.LightningBolt bolt) {
+                                    bolt.setPos(player.getX(), player.getY(), player.getZ());
+                                    sl.addFreshEntity(bolt);
+                                }
                         }
                     }
                     
@@ -111,8 +115,12 @@ public class AltarBlock extends BaseEntityBlock {
                         ItemStack extracted = ItemStack.EMPTY;
                         if (altar.isRitualActive()) {
                             // Punish the player for interrupting the ritual
-                            if (player instanceof net.minecraft.server.level.ServerPlayer sp && level instanceof net.minecraft.server.level.ServerLevel sl) {
-                                sl.getServer().getCommands().performPrefixedCommand(sp.createCommandSourceStack().withPosition(new net.minecraft.world.phys.Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)), "summon lightning_bolt");
+                            if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                                net.minecraft.world.entity.Entity entity = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(net.minecraft.resources.Identifier.withDefaultNamespace("lightning_bolt")).get().value().create(sl, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+                                if (entity instanceof net.minecraft.world.entity.LightningBolt bolt) {
+                                    bolt.setPos(player.getX(), player.getY(), player.getZ());
+                                    sl.addFreshEntity(bolt);
+                                }
                             }
                         }
                         
@@ -144,7 +152,6 @@ public class AltarBlock extends BaseEntityBlock {
             }
             if (!level.isClientSide()) {
                 if (altar.addItem(stack, player)) {
-                    stack.shrink(1);
                     return InteractionResult.SUCCESS;
                 }
             } else {

@@ -1,0 +1,15 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:isa_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:event",
+      "event": "bloodrunes:snowstorm"
+    }
+  ],
+  "duration_ticks": 1200
+}

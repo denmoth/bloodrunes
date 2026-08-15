@@ -1,0 +1,15 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:algiz_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:event",
+      "event": "bloodrunes:survive_raid"
+    }
+  ],
+  "duration_ticks": 12000
+}

@@ -1,0 +1,16 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:nauthiz_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:kill",
+      "entity": "minecraft:zombie",
+      "count": 1
+    }
+  ],
+  "duration_ticks": 600
+}

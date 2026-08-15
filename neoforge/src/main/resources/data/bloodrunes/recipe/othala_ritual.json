@@ -1,0 +1,16 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:othala_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:red_bed",
+      "count": 1
+    }
+  ],
+  "duration_ticks": 200
+}

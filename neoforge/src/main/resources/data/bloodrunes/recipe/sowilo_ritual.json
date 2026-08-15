@@ -1,0 +1,21 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:sowilo_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:kill",
+      "entity": "minecraft:zombie",
+      "count": 10
+    },
+    {
+      "type": "bloodrunes:kill",
+      "entity": "minecraft:skeleton",
+      "count": 6
+    }
+  ],
+  "duration_ticks": 600
+}

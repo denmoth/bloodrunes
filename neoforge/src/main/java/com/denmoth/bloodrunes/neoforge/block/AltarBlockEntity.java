@@ -107,8 +107,12 @@ public class AltarBlockEntity extends BlockEntity {
             if (!level.isClientSide()) {
                 if (ritualActive) {
                     // Punish the player for interrupting the ritual
-                    if (player instanceof net.minecraft.server.level.ServerPlayer sp && level instanceof net.minecraft.server.level.ServerLevel sl) {
-                        sl.getServer().getCommands().performPrefixedCommand(sp.createCommandSourceStack().withPosition(player.position()), "summon lightning_bolt");
+                    if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                        net.minecraft.world.entity.Entity entity = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(net.minecraft.resources.Identifier.withDefaultNamespace("lightning_bolt")).get().value().create(sl, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+                        if (entity instanceof net.minecraft.world.entity.LightningBolt bolt) {
+                            bolt.setPos(player.getX(), player.getY(), player.getZ());
+                            sl.addFreshEntity(bolt);
+                        }
                     }
                     cancelRitual(); // This triggers the extinguish sound and resets state
                 }
@@ -317,12 +321,10 @@ public class AltarBlockEntity extends BlockEntity {
                     recipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
                 }
                 
-                if (recipeOpt.isEmpty() && !checkRistublot(input)) {
-                    // Do not cancel early, allow the player to complete the kills within the duration!
-                    // It will cancel at the end if conditions aren't met.
-                }
+                boolean isSacrificeRitual = recipeOpt.isPresent() && recipeOpt.get().value().getConditions().stream().anyMatch(c -> c instanceof com.denmoth.bloodrunes.neoforge.recipe.condition.SacrificeCondition);
+                boolean isKillRitual = recipeOpt.isPresent() && !isSacrificeRitual;
                 
-                if (ticksActive >= duration) {
+                if (ticksActive >= duration || (isKillRitual && recipeOpt.isPresent())) {
                     if (recipeOpt.isPresent()) {
                         completeRitual(recipeOpt.get().value().assemble(input));
                     } else if (checkRistublot(input)) {
@@ -346,6 +348,11 @@ public class AltarBlockEntity extends BlockEntity {
         playerDied = false;
         if (level != null) {
             level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
+            if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE, 
+                    worldPosition.getX() + 0.5, worldPosition.getY() + 1.2, worldPosition.getZ() + 0.5, 
+                    50, 0.5, 0.5, 0.5, 0.1);
+            }
             setChanged();
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
@@ -439,9 +446,16 @@ public class AltarBlockEntity extends BlockEntity {
         if (this.level != null) {
             Player nearestPlayer = this.level.getNearestPlayer(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, 8.0, false);
             if (nearestPlayer != null) {
-                int requiredXp = 20;
-                if (input.centerItem().getMaxDamage() > 1000) requiredXp += 5; // Diamond+
-                if (input.centerItem().getMaxDamage() > 2000) requiredXp += 5; // Netherite
+                int runeTier = 1;
+                ItemStack runeStackForXp = items.get(9);
+                if (!runeStackForXp.isEmpty()) {
+                    net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(runeStackForXp.getItem());
+                    String path = id.getPath();
+                    if (path.endsWith("_rune")) {
+                        runeTier = getRuneTier(path.replace("_rune", ""));
+                    }
+                }
+                int requiredXp = 15 + (runeTier - 1) * 5;
                 if (nearestPlayer.experienceLevel >= requiredXp || nearestPlayer.isCreative()) {
                     return true;
                 }
@@ -460,10 +474,15 @@ public class AltarBlockEntity extends BlockEntity {
         
         if (this.level != null) {
             Player nearestPlayer = this.level.getNearestPlayer(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, 8.0, false);
-            if (nearestPlayer != null && !nearestPlayer.isCreative()) {
-                int requiredXp = 20;
-                if (input.centerItem().getMaxDamage() > 1000) requiredXp += 5;
-                if (input.centerItem().getMaxDamage() > 2000) requiredXp += 5;
+                int runeTier = 1;
+                if (!runeStack.isEmpty()) {
+                    net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(runeStack.getItem());
+                    String path = id.getPath();
+                    if (path.endsWith("_rune")) {
+                        runeTier = getRuneTier(path.replace("_rune", ""));
+                    }
+                }
+                int requiredXp = 15 + (runeTier - 1) * 5;
                 nearestPlayer.giveExperienceLevels(-requiredXp);
                 // Experience sucking particles
                 if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
@@ -505,5 +524,14 @@ public class AltarBlockEntity extends BlockEntity {
             return durability > 0 && durability >= 390;
         }
         return false;
+    }
+
+    public static int getRuneTier(String runeName) {
+        return switch (runeName) {
+            case "uruz", "thurisaz", "isa", "sowilo", "mannaz", "ehwaz" -> 2;
+            case "ingwaz", "algiz", "berkano", "eihwaz", "perthro", "dagaz" -> 3;
+            case "jera", "tiwaz", "hagalaz", "othala", "nauthiz", "gebo" -> 4;
+            default -> 1; // fehu, kenaz, raido, wunjo, laguz, ansuz and blank_rune
+        };
     }
 }

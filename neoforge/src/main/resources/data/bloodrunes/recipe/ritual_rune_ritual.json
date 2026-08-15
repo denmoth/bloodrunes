@@ -1,0 +1,21 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:ritual_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:ender_pearl",
+      "count": 4
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:blaze_powder",
+      "count": 4
+    }
+  ],
+  "duration_ticks": 200
+}

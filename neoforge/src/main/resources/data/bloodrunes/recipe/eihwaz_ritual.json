@@ -1,0 +1,21 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:eihwaz_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:kill",
+      "entity": "minecraft:bat",
+      "count": 8
+    },
+    {
+      "type": "bloodrunes:kill",
+      "entity": "minecraft:villager",
+      "count": 2
+    }
+  ],
+  "duration_ticks": 600
+}

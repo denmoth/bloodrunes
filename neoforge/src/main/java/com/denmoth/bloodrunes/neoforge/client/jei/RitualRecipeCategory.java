@@ -109,7 +109,7 @@ public class RitualRecipeCategory implements IRecipeCategory<RitualRecipe> {
         // Draw Altar at center
         int centerX = 72;
         int centerY = 52;
-        int altarY = centerY + (int) (Math.sin(time * 0.08) * 3);
+        int altarY = centerY;
         guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.ALTAR_ITEM.get())).draw(graphics, centerX, altarY);
 
         // Draw orbiting ingredients using JEI's currently displayed slot items
