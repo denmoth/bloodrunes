@@ -1,19 +1,9 @@
 {
   "type": "bloodrunes:ritual",
-  "center_item": {
-    "item": "bloodrunes:blank_rune"
-  },
-  "circle_items": [],
+  "base_rune": "bloodrunes:blank_rune",
+  "result": { "id": "bloodrunes:uruz_rune", "count": 1 },
   "conditions": [
-    {
-      "type": "bloodrunes:kill",
-      "entity": "minecraft:ravager",
-      "count": 3
-    }
+    { "type": "bloodrunes:kill", "entity": "minecraft:ravager", "count": 3 }
   ],
-  "result": {
-    "id": "bloodrunes:uruz_rune",
-    "count": 1
-  },
-  "ritual_duration": 600
+  "duration_ticks": 600
 }

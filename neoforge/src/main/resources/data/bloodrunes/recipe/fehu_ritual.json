@@ -1,0 +1,21 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:fehu_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:gold_ingot",
+      "count": 4
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:emerald",
+      "count": 4
+    }
+  ],
+  "duration_ticks": 200
+}

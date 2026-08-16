@@ -1,0 +1,16 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:kenaz_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:kill",
+      "entity": "minecraft:blaze",
+      "count": 8
+    }
+  ],
+  "duration_ticks": 600
+}

@@ -1,0 +1,15 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:laguz_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:event",
+      "event": "bloodrunes:underwater_5_min"
+    }
+  ],
+  "duration_ticks": 6000
+}

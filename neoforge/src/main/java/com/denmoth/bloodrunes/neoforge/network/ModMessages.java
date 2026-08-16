@@ -25,5 +25,10 @@ public class ModMessages {
             SpawnSoulParticlesPacket.STREAM_CODEC,
             SpawnSoulParticlesPacket::handle
         );
+        registrar.playToClient(
+            SpawnXpParticlesPacket.TYPE,
+            SpawnXpParticlesPacket.STREAM_CODEC,
+            SpawnXpParticlesPacket::handle
+        );
     }
 }

@@ -1,0 +1,16 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:blank_rune",
+  "result": {
+    "id": "bloodrunes:wunjo_rune",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:bread",
+      "count": 2
+    }
+  ],
+  "duration_ticks": 200
+}
