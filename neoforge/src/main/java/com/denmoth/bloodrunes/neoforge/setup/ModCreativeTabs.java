@@ -19,12 +19,31 @@ public class ModCreativeTabs {
                     .displayItems((parameters, output) -> {
                         output.accept(ModBlocks.ALTAR_ITEM.get());
                         output.accept(ModItems.BLANK_RUNE.get());
-                        output.accept(ModItems.URUZ_RUNE.get());
                         output.accept(ModItems.FEHU_RUNE.get());
-                        output.accept(ModItems.BERKANO_RUNE.get());
-                        output.accept(ModItems.HAGALAZ_RUNE.get());
+                        output.accept(ModItems.URUZ_RUNE.get());
+                        output.accept(ModItems.THURISAZ_RUNE.get());
+                        output.accept(ModItems.ANSUZ_RUNE.get());
+                        output.accept(ModItems.RAIDO_RUNE.get());
+                        output.accept(ModItems.KENAZ_RUNE.get());
+                        output.accept(ModItems.GEBO_RUNE.get());
                         output.accept(ModItems.WUNJO_RUNE.get());
+                        output.accept(ModItems.HAGALAZ_RUNE.get());
+                        output.accept(ModItems.NAUTHIZ_RUNE.get());
+                        output.accept(ModItems.ISA_RUNE.get());
+                        output.accept(ModItems.JERA_RUNE.get());
+                        output.accept(ModItems.EIHWAZ_RUNE.get());
+                        output.accept(ModItems.PERTHRO_RUNE.get());
+                        output.accept(ModItems.ALGIZ_RUNE.get());
+                        output.accept(ModItems.SOWILO_RUNE.get());
+                        output.accept(ModItems.TIWAZ_RUNE.get());
+                        output.accept(ModItems.BERKANO_RUNE.get());
+                        output.accept(ModItems.EHWAZ_RUNE.get());
+                        output.accept(ModItems.MANNAZ_RUNE.get());
+                        output.accept(ModItems.LAGUZ_RUNE.get());
+                        output.accept(ModItems.INGWAZ_RUNE.get());
+                        output.accept(ModItems.OTHALA_RUNE.get());
                         output.accept(ModItems.DAGAZ_RUNE.get());
+                        output.accept(ModItems.RITUAL_RUNE.get());
                     })
                     .build());
 }

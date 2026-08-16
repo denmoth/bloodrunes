@@ -80,15 +80,27 @@ public class AltarBlockEntityRenderer implements BlockEntityRenderer<AltarBlockE
         if (count > 0) {
             float angleStep = 360.0f / count;
             
+            float totalTicks = 0.0f;
             float progress = 0.0f;
+            float collapseProgress = 0.0f;
+            
             if (state.ritualActive && state.duration > 0) {
-                progress = Math.min(1.0f, (state.ticksActive + state.partialTick) / (float) state.duration);
+                totalTicks = state.ticksActive + state.partialTick;
+                progress = Math.min(1.0f, totalTicks / (float) state.duration);
+                if (totalTicks > 20.0f) {
+                    collapseProgress = Math.min(1.0f, (totalTicks - 20.0f) / ((float) state.duration - 20.0f));
+                }
             }
-            // Starts at 0.45 radius, collapses to 0 by progress = 1.0
-            // Rotation speed increases based on progress
-            double radius = 0.45D * (1.0f - progress * progress); // Accelerate collapse near the end
-            float spinSpeed = 1.5F + progress * 10.0F;
-            float rotationOffset = renderTime * spinSpeed;
+            
+            // Continuous rotation function: base speed + smooth polynomial acceleration
+            // This prevents stuttering caused by multiplying a changing speed by absolute time
+            float rotationOffset = renderTime * 1.5F;
+            if (state.ritualActive) {
+                rotationOffset += (progress * progress * progress) * (360.0F * 10.0F); // Up to 10 extra spins
+            }
+            
+            // Starts at 0.45 radius, collapses after 1 second
+            double radius = 0.45D * (1.0f - (collapseProgress * collapseProgress)); 
             
             int idx = 0;
             for (int i = 1; i < 9; i++) {
@@ -101,13 +113,14 @@ public class AltarBlockEntityRenderer implements BlockEntityRenderer<AltarBlockE
                     double cy = 1.35D + Math.sin(renderTime * 0.06 + idx * 0.8) * 0.15D;
                     
                     // As items collapse, they move down to meet the center item
-                    cy = cy * (1.0 - progress) + (1.25D) * progress;
+                    cy = cy * (1.0 - collapseProgress) + (1.25D) * collapseProgress;
                     
                     poseStack.translate(cx, cy, cz);
-                    poseStack.mulPose(Axis.YP.rotationDegrees(renderTime * (3.0F + progress * 5.0F)));
+                    // Also accelerate their own spinning smoothly
+                    poseStack.mulPose(Axis.YP.rotationDegrees(renderTime * 3.0F + (progress * progress * 360.0F * 4.0F)));
                     
                     // Scale down as they collapse
-                    float scale = 0.45f * (1.0f - progress * 0.5f);
+                    float scale = 0.45f * (1.0f - collapseProgress * 0.5f);
                     poseStack.scale(scale, scale, scale);
                     
                     state.itemStates[i].submit(poseStack, collector, 15728880, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, 0);
@@ -120,14 +133,22 @@ public class AltarBlockEntityRenderer implements BlockEntityRenderer<AltarBlockE
         // Slot 9 item (Rune during Ristublot)
         if (state.hasItem[9] && !state.itemStates[9].isEmpty()) {
             poseStack.pushPose();
-            poseStack.translate(0.5D, 1.6D + Math.sin(renderTime * 0.1) * 0.1D, 0.5D);
-            poseStack.mulPose(Axis.YP.rotationDegrees(-renderTime * 3.0F));
+            // Hover slightly above the altar surface (which is at Y=1.0)
+            poseStack.translate(0.5D, 1.05D, 0.5D);
+            // Spin slowly around Y axis
+            poseStack.mulPose(Axis.YP.rotationDegrees(-renderTime * 1.5F));
+            // Lay flat on the XZ plane
+            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
             
-            float progress = 0.0f;
-            if (state.ritualActive && state.duration > 0) {
-                progress = Math.min(1.0f, (state.ticksActive + state.partialTick) / (float) state.duration);
+            float collapseProgress = 0.0f;
+            if (state.ritualActive && state.duration > 20) {
+                float totalTicks = state.ticksActive + state.partialTick;
+                if (totalTicks > 20.0f) {
+                    collapseProgress = Math.min(1.0f, (totalTicks - 20.0f) / ((float) state.duration - 20.0f));
+                }
             }
-            float scale = 0.5f * (1.0f - progress * 0.3f);
+            // Grow slightly as ritual progresses to look like it's absorbing the items
+            float scale = 0.5f + (collapseProgress * 0.2f);
             poseStack.scale(scale, scale, scale);
             
             state.itemStates[9].submit(poseStack, collector, 15728880, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, 0);

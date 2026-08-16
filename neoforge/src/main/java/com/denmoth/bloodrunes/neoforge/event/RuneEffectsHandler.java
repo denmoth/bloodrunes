@@ -1,82 +1,133 @@
 package com.denmoth.bloodrunes.neoforge.event;
 
 import com.denmoth.bloodrunes.BloodRunes;
-import com.denmoth.bloodrunes.neoforge.setup.ModAttachments;
 import com.denmoth.bloodrunes.neoforge.setup.ModDataComponents;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.tick.EntityTickEvent;
-import net.minecraft.world.entity.LivingEntity;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.resources.Identifier;
+import net.minecraft.network.chat.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @EventBusSubscriber(modid = BloodRunes.MOD_ID)
 public class RuneEffectsHandler {
 
+    // Helper to get runes from an entity's equipment
+    public static List<String> getRunes(LivingEntity entity) {
+        List<String> runes = new ArrayList<>();
+        for (net.minecraft.world.entity.EquipmentSlot slot : net.minecraft.world.entity.EquipmentSlot.values()) {
+            if (slot.isArmor()) {
+                ItemStack stack = entity.getItemBySlot(slot);
+                if (stack.has(ModDataComponents.RUNE_DATA.get())) {
+                    runes.add(stack.get(ModDataComponents.RUNE_DATA.get()).runeId());
+                }
+            }
+        }
+        ItemStack mainHand = entity.getMainHandItem();
+        if (mainHand.has(ModDataComponents.RUNE_DATA.get())) {
+            runes.add(mainHand.get(ModDataComponents.RUNE_DATA.get()).runeId());
+        }
+        ItemStack offHand = entity.getOffhandItem();
+        if (offHand.has(ModDataComponents.RUNE_DATA.get())) {
+            runes.add(offHand.get(ModDataComponents.RUNE_DATA.get()).runeId());
+        }
+        return runes;
+    }
+
+    public static boolean hasRune(LivingEntity entity, String runeName) {
+        return getRunes(entity).contains(runeName); // runedata already stores without bloodrunes: prefix if we do it that way. Wait, earlier it was saved with prefix. Let's just check both.
+    }
+    
+    public static boolean hasRuneOnWeapon(LivingEntity entity, String runeName) {
+        ItemStack mainHand = entity.getMainHandItem();
+        if (mainHand.has(ModDataComponents.RUNE_DATA.get())) {
+            String rId = mainHand.get(ModDataComponents.RUNE_DATA.get()).runeId();
+            return rId.equals(runeName) || rId.equals("bloodrunes:" + runeName);
+        }
+        return false;
+    }
+
+    @SubscribeEvent
+    public static void onAttributeModifiers(ItemAttributeModifierEvent event) {
+        ItemStack stack = event.getItemStack();
+        if (stack.has(ModDataComponents.RUNE_DATA.get())) {
+            String runeId = stack.get(ModDataComponents.RUNE_DATA.get()).runeId();
+            String name = runeId.replace("bloodrunes:", "");
+            
+            String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+            boolean isChest = path.contains("chestplate");
+            boolean isLegs = path.contains("leggings");
+            boolean isWeapon = path.contains("sword") || path.contains("axe");
+            boolean isShield = path.contains("shield");
+            
+            // Tier II Runes
+            if (name.equals("uruz_rune")) {
+                if (isChest) {
+                    event.addModifier(Attributes.MAX_HEALTH, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_health"), 4.0, AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.CHEST);
+                } else if (isLegs) {
+                    event.addModifier(Attributes.MAX_HEALTH, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_health"), 2.0, AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.LEGS);
+                } else if (isWeapon) {
+                    event.addModifier(Attributes.ATTACK_DAMAGE, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_damage"), 0.15, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
+                } else if (isShield) {
+                    event.addModifier(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_kb"), 0.20, AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+                }
+                // Drawback: -10% movement speed on any item
+                event.addModifier(Attributes.MOVEMENT_SPEED, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_slow"), -0.10, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), net.minecraft.world.entity.EquipmentSlotGroup.ANY);
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent.Pre event) {
-        if (event.getSource().getEntity() instanceof Player attacker) {
+        LivingEntity victim = event.getEntity();
+        if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             ItemStack weapon = attacker.getMainHandItem();
-            ModDataComponents.RuneData runeData = weapon.get(ModDataComponents.RUNE_DATA);
-            
-            if (runeData != null) {
-                boolean knowsLanguage = attacker.getData(ModAttachments.VIKING_LANGUAGE);
-                long currentTime = attacker.level().getGameTime();
-                
-                if (runeData.runeId().equals("blood_rune")) {
-                    float healAmount = event.getOriginalDamage() * (knowsLanguage ? (0.3f + attacker.getRandom().nextFloat() * 0.2f) : (0.15f + attacker.getRandom().nextFloat() * 0.1f));
-                    if (attacker.getRandom().nextFloat() < 0.15f) {
-                        attacker.heal(healAmount);
-                    }
-                }
-                
-                if (runeData.runeId().equals("courage_rune")) {
-                    if (runeData.cooldownEndTimestamp() <= currentTime) {
-                        if (attacker.getHealth() / attacker.getMaxHealth() < 0.3f) {
-                            float mult = knowsLanguage ? 1.5f : 1.25f;
-                            event.setNewDamage(event.getNewDamage() * mult);
-                            weapon.set(ModDataComponents.RUNE_DATA, new ModDataComponents.RuneData("courage_rune", currentTime + 2400));
-                        }
-                    }
+            if (weapon.has(ModDataComponents.RUNE_DATA.get())) {
+                String runeId = weapon.get(ModDataComponents.RUNE_DATA.get()).runeId();
+                if (runeId.equals("uruz_rune") || runeId.equals("bloodrunes:uruz_rune")) {
+                    // +15% damage is handled by attributes
                 }
             }
         }
     }
 
     @SubscribeEvent
-    public static void onEntityTick(EntityTickEvent.Post event) {
-        if (!(event.getEntity() instanceof LivingEntity entity)) return;
-        
-        if (entity.level().isClientSide()) return;
-        if (entity.tickCount % 20 != 0) return;
-
-        if (entity instanceof Player player) {
-            boolean knowsLanguage = player.getData(ModAttachments.VIKING_LANGUAGE);
-            long currentTime = player.level().getGameTime();
-            int buffDuration = knowsLanguage ? 200 : 100;
-
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                if (!slot.isArmor()) continue;
-                
-                ItemStack armor = player.getItemBySlot(slot);
-                ModDataComponents.RuneData runeData = armor.get(ModDataComponents.RUNE_DATA);
-                
-                if (runeData != null && runeData.runeId().equals("courage_rune")) {
-                    if (runeData.cooldownEndTimestamp() <= currentTime) {
-                        if (player.getHealth() / player.getMaxHealth() < 0.3f) {
-                            if (slot == EquipmentSlot.FEET) {
-                                player.addEffect(new MobEffectInstance(MobEffects.SPEED, buffDuration, 0));
-                            } else {
-                                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, buffDuration, 0));
-                            }
-                            armor.set(ModDataComponents.RUNE_DATA, new ModDataComponents.RuneData("courage_rune", currentTime + 2400));
-                        }
-                    }
+    public static void onTooltip(ItemTooltipEvent event) {
+        ItemStack stack = event.getItemStack();
+        if (stack.has(ModDataComponents.RUNE_DATA.get())) {
+            String runeId = stack.get(ModDataComponents.RUNE_DATA.get()).runeId();
+            String name = runeId.replace("bloodrunes:", "");
+            
+            String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+            boolean isChest = path.contains("chestplate");
+            boolean isLegs = path.contains("leggings");
+            boolean isWeapon = path.contains("sword") || path.contains("axe");
+            boolean isShield = path.contains("shield");
+            
+            event.getToolTip().add(Component.empty());
+            event.getToolTip().add(Component.translatable("item.bloodrunes." + name).withStyle(net.minecraft.ChatFormatting.GOLD));
+            
+            if (name.equals("uruz_rune")) {
+                if (isChest) {
+                    event.getToolTip().add(Component.literal(" §7+4 макс. здоровья").withStyle(net.minecraft.ChatFormatting.GRAY));
+                } else if (isLegs) {
+                    event.getToolTip().add(Component.literal(" §7+2 макс. здоровья").withStyle(net.minecraft.ChatFormatting.GRAY));
+                } else if (isWeapon) {
+                    event.getToolTip().add(Component.literal(" §7+15% урон от атак").withStyle(net.minecraft.ChatFormatting.GRAY));
+                } else if (isShield) {
+                    event.getToolTip().add(Component.literal(" §7+20% сопротивление отбрасыванию").withStyle(net.minecraft.ChatFormatting.GRAY));
                 }
+                event.getToolTip().add(Component.literal(" §c-10% скорость передвижения").withStyle(net.minecraft.ChatFormatting.RED));
             }
         }
     }

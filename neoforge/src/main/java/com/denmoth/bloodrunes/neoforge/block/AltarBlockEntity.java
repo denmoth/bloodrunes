@@ -22,6 +22,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class AltarBlockEntity extends BlockEntity {
+    public static final java.util.Set<AltarBlockEntity> ACTIVE_ALTARS = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
+
     private net.minecraft.core.NonNullList<ItemStack> items = net.minecraft.core.NonNullList.withSize(10, ItemStack.EMPTY);
 
     private boolean ritualActive = false;
@@ -232,7 +234,17 @@ public class AltarBlockEntity extends BlockEntity {
         }
     }
 
+    public void setRemoved() {
+        super.setRemoved();
+        ACTIVE_ALTARS.remove(this);
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, AltarBlockEntity entity) {
+        if (entity.ritualActive) {
+            ACTIVE_ALTARS.add(entity);
+        } else {
+            ACTIVE_ALTARS.remove(entity);
+        }
         entity.tick();
     }
 
@@ -487,6 +499,8 @@ public class AltarBlockEntity extends BlockEntity {
                 nearestPlayer.giveExperienceLevels(-requiredXp);
                 // Experience sucking particles
                 if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    com.denmoth.bloodrunes.neoforge.network.SpawnXpParticlesPacket packet = new com.denmoth.bloodrunes.neoforge.network.SpawnXpParticlesPacket(nearestPlayer.blockPosition(), worldPosition);
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingChunk(serverLevel, new net.minecraft.world.level.ChunkPos(worldPosition.getX() >> 4, worldPosition.getZ() >> 4), packet);
                     for (int i = 0; i < 20; i++) {
                         serverLevel.sendParticles(ParticleTypes.ENCHANT, 
                             nearestPlayer.getX(), nearestPlayer.getY() + 1.0, nearestPlayer.getZ(), 

@@ -62,18 +62,23 @@ public class RistublotRecipeCategory implements IRecipeCategory<RitualRecipe> {
     public void setRecipe(IRecipeLayoutBuilder builder, RitualRecipe recipe, IFocusGroup focuses) {
         // Bottom row for static, clickable slots
         int startX = 10;
-        int bottomY = 115;
+        int startY = 100;
         
-        builder.addSlot(RecipeIngredientRole.INPUT, startX, bottomY)
+        builder.addSlot(RecipeIngredientRole.INPUT, startX, startY)
             .add(recipe.getBaseRune());
 
         int currentX = startX + 20;
+        int currentY = startY;
         for (com.denmoth.bloodrunes.neoforge.recipe.condition.RitualCondition condition : recipe.getConditions()) {
             if (condition instanceof com.denmoth.bloodrunes.neoforge.recipe.condition.SacrificeCondition sacrifice) {
-                for (int c = 0; c < sacrifice.count() && currentX < 120; c++) {
-                    builder.addSlot(RecipeIngredientRole.INPUT, currentX, bottomY)
+                for (int c = 0; c < sacrifice.count(); c++) {
+                    builder.addSlot(RecipeIngredientRole.INPUT, currentX, currentY)
                         .add(sacrifice.item());
                     currentX += 18;
+                    if (currentX > 140) {
+                        currentX = startX + 20;
+                        currentY += 18;
+                    }
                 }
             } else if (condition instanceof com.denmoth.bloodrunes.neoforge.recipe.condition.KillCondition kill) {
                 java.util.List<ItemStack> eggs = new java.util.ArrayList<>();
@@ -91,9 +96,13 @@ public class RistublotRecipeCategory implements IRecipeCategory<RitualRecipe> {
                 }
                 
                 if (!eggs.isEmpty()) {
-                    builder.addSlot(RecipeIngredientRole.INPUT, currentX, bottomY)
+                    builder.addSlot(RecipeIngredientRole.INPUT, currentX, currentY)
                         .addItemStacks(eggs);
                     currentX += 18;
+                    if (currentX > 140) {
+                        currentX = startX + 20;
+                        currentY += 18;
+                    }
                 }
             }
         }
@@ -115,7 +124,7 @@ public class RistublotRecipeCategory implements IRecipeCategory<RitualRecipe> {
         }
         
         if (!outputs.isEmpty()) {
-            builder.addSlot(RecipeIngredientRole.OUTPUT, 135, bottomY)
+            builder.addSlot(RecipeIngredientRole.OUTPUT, 140, 100)
                 .addItemStacks(outputs);
         }
     }
