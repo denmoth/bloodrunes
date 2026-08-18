@@ -19,6 +19,7 @@ public class BloodRunesNeoForge {
         modEventBus.addListener(com.denmoth.bloodrunes.neoforge.client.ClientEvents::onRegisterRenderers);
 
         com.denmoth.bloodrunes.neoforge.setup.ModConditionTypes.init();
+        com.denmoth.bloodrunes.neoforge.setup.ModRuneEffects.init();
         BloodRunes.init();
     }
 }

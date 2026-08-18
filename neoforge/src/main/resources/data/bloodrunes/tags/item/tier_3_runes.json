@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "bloodrunes:ingwaz_rune",
+    "bloodrunes:algiz_rune",
+    "bloodrunes:berkano_rune",
+    "bloodrunes:eihwaz_rune",
+    "bloodrunes:perthro_rune",
+    "bloodrunes:dagaz_rune"
+  ]
+}

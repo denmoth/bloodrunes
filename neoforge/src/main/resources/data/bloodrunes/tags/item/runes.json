@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#bloodrunes:elder_futhark",
+    "bloodrunes:blank_rune",
+    "bloodrunes:ritual_rune"
+  ]
+}

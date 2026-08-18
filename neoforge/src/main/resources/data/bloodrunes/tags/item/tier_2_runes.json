@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "bloodrunes:uruz_rune",
+    "bloodrunes:thurisaz_rune",
+    "bloodrunes:isa_rune",
+    "bloodrunes:sowilo_rune",
+    "bloodrunes:mannaz_rune",
+    "bloodrunes:ehwaz_rune"
+  ]
+}

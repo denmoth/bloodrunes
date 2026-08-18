@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "bloodrunes:fehu_rune",
+    "bloodrunes:kenaz_rune",
+    "bloodrunes:raido_rune",
+    "bloodrunes:wunjo_rune",
+    "bloodrunes:laguz_rune",
+    "bloodrunes:ansuz_rune"
+  ]
+}

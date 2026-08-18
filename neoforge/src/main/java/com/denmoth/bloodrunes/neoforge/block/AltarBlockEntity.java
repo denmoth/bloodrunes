@@ -54,8 +54,7 @@ public class AltarBlockEntity extends BlockEntity {
                 || stack.is(com.denmoth.bloodrunes.neoforge.setup.ModItems.BLANK_RUNE.get())) {
             return 3;
         }
-        net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (id.getPath().endsWith("_rune") && !id.getPath().equals("blank_rune")) {
+        if (stack.is(com.denmoth.bloodrunes.neoforge.setup.ModTags.Items.ELDER_FUTHARK)) {
             return 2;
         }
         return 1;

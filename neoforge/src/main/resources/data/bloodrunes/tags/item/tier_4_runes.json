@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "bloodrunes:jera_rune",
+    "bloodrunes:tiwaz_rune",
+    "bloodrunes:hagalaz_rune",
+    "bloodrunes:othala_rune",
+    "bloodrunes:nauthiz_rune",
+    "bloodrunes:gebo_rune"
+  ]
+}
