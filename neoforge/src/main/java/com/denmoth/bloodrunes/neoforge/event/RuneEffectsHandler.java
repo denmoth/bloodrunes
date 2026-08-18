@@ -22,37 +22,42 @@ import java.util.List;
 @EventBusSubscriber(modid = BloodRunes.MOD_ID)
 public class RuneEffectsHandler {
 
+    private static final net.minecraft.world.entity.EquipmentSlot[] ALL_EQUIPMENT_SLOTS = net.minecraft.world.entity.EquipmentSlot.values();
+
     // Helper to get runes from an entity's equipment
     public static List<String> getRunes(LivingEntity entity) {
-        List<String> runes = new ArrayList<>();
-        for (net.minecraft.world.entity.EquipmentSlot slot : net.minecraft.world.entity.EquipmentSlot.values()) {
-            if (slot.isArmor()) {
-                ItemStack stack = entity.getItemBySlot(slot);
-                if (stack.has(ModDataComponents.RUNE_DATA.get())) {
-                    runes.add(stack.get(ModDataComponents.RUNE_DATA.get()).runeId());
-                }
+        List<String> runes = new ArrayList<>(6);
+        for (net.minecraft.world.entity.EquipmentSlot slot : ALL_EQUIPMENT_SLOTS) {
+            ItemStack stack = entity.getItemBySlot(slot);
+            if (stack.has(ModDataComponents.RUNE_DATA.get())) {
+                runes.add(stack.get(ModDataComponents.RUNE_DATA.get()).runeId());
             }
-        }
-        ItemStack mainHand = entity.getMainHandItem();
-        if (mainHand.has(ModDataComponents.RUNE_DATA.get())) {
-            runes.add(mainHand.get(ModDataComponents.RUNE_DATA.get()).runeId());
-        }
-        ItemStack offHand = entity.getOffhandItem();
-        if (offHand.has(ModDataComponents.RUNE_DATA.get())) {
-            runes.add(offHand.get(ModDataComponents.RUNE_DATA.get()).runeId());
         }
         return runes;
     }
 
     public static boolean hasRune(LivingEntity entity, String runeName) {
-        return getRunes(entity).contains(runeName); // runedata already stores without bloodrunes: prefix if we do it that way. Wait, earlier it was saved with prefix. Let's just check both.
+        String cleanRune = runeName.startsWith("bloodrunes:") ? runeName.substring(11) : runeName;
+        for (net.minecraft.world.entity.EquipmentSlot slot : ALL_EQUIPMENT_SLOTS) {
+            ItemStack stack = entity.getItemBySlot(slot);
+            if (stack.has(ModDataComponents.RUNE_DATA.get())) {
+                String id = stack.get(ModDataComponents.RUNE_DATA.get()).runeId();
+                String cleanId = id.startsWith("bloodrunes:") ? id.substring(11) : id;
+                if (cleanId.equals(cleanRune)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     public static boolean hasRuneOnWeapon(LivingEntity entity, String runeName) {
         ItemStack mainHand = entity.getMainHandItem();
         if (mainHand.has(ModDataComponents.RUNE_DATA.get())) {
             String rId = mainHand.get(ModDataComponents.RUNE_DATA.get()).runeId();
-            return rId.equals(runeName) || rId.equals("bloodrunes:" + runeName);
+            String cleanId = rId.startsWith("bloodrunes:") ? rId.substring(11) : rId;
+            String cleanRune = runeName.startsWith("bloodrunes:") ? runeName.substring(11) : runeName;
+            return cleanId.equals(cleanRune);
         }
         return false;
     }
@@ -81,8 +86,8 @@ public class RuneEffectsHandler {
                 } else if (isShield) {
                     event.addModifier(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_kb"), 0.20, AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
                 }
-                // Drawback: -10% movement speed on any item
-                event.addModifier(Attributes.MOVEMENT_SPEED, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_slow"), -0.10, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), net.minecraft.world.entity.EquipmentSlotGroup.ANY);
+                // Drawback: -10% movement speed per equipped rune item
+                event.addModifier(Attributes.MOVEMENT_SPEED, new AttributeModifier(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "uruz_slow_" + path), -0.10, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), net.minecraft.world.entity.EquipmentSlotGroup.ANY);
             }
         }
     }

@@ -31,15 +31,12 @@ public class RitualHandler {
                 boolean isLowHp = killer.getHealth() / killer.getMaxHealth() < 0.3f;
                 BlockPos killPos = victim.blockPosition();
 
-                // Search for AltarBlockEntity within 8 blocks
-                BlockPos.betweenClosedStream(
-                        killPos.offset(-8, -8, -8),
-                        killPos.offset(8, 8, 8)
-                ).forEach(pos -> {
-                    if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
+                // Fast lookup using loaded altars in the world (O(1) instead of 4913 block scan)
+                for (AltarBlockEntity altar : AltarBlockEntity.LOADED_ALTARS) {
+                    if (altar.getLevel() == level && altar.getBlockPos().distSqr(killPos) <= 64.0) {
                         altar.onMobKilled(killer, isVillager, isPlayer, isHostile, isLowHp, killPos, event.getEntity());
                     }
-                });
+                }
             }
         }
     }

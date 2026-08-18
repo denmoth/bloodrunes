@@ -96,7 +96,7 @@ public class RitualRecipeCategory implements IRecipeCategory<RitualRecipe> {
         // Output item
         if (!recipe.getResult().isEmpty()) {
             builder.addSlot(RecipeIngredientRole.OUTPUT, 135, bottomY)
-                .addItemStack(recipe.getResult());
+                .add(recipe.getResult());
         }
     }
 

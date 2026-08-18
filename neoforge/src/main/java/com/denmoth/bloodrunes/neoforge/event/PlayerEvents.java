@@ -25,4 +25,20 @@ public class PlayerEvents {
             event.getEntity().setData(ModAttachments.VIKING_LANGUAGE, event.getOriginal().getData(ModAttachments.VIKING_LANGUAGE));
         }
     }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            boolean knowsLanguage = serverPlayer.getData(ModAttachments.VIKING_LANGUAGE);
+            PacketDistributor.sendToPlayer(serverPlayer, new SyncLanguagePacket(knowsLanguage));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            boolean knowsLanguage = serverPlayer.getData(ModAttachments.VIKING_LANGUAGE);
+            PacketDistributor.sendToPlayer(serverPlayer, new SyncLanguagePacket(knowsLanguage));
+        }
+    }
 }

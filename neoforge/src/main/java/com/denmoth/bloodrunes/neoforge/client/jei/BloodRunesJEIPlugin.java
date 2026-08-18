@@ -19,11 +19,11 @@ import java.util.List;
 
 @JeiPlugin
 public class BloodRunesJEIPlugin implements IModPlugin {
-    public static final mezz.jei.api.recipe.RecipeType<RitualRecipe> RITUAL_RECIPE_TYPE =
-        mezz.jei.api.recipe.RecipeType.create("bloodrunes", "ritual", RitualRecipe.class);
+    public static final IRecipeType<RitualRecipe> RITUAL_RECIPE_TYPE =
+        IRecipeType.create(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "ritual"), RitualRecipe.class);
     
-    public static final mezz.jei.api.recipe.RecipeType<RitualRecipe> RISTUBLOT_RECIPE_TYPE =
-        mezz.jei.api.recipe.RecipeType.create("bloodrunes", "ristublot", RitualRecipe.class);
+    public static final IRecipeType<RitualRecipe> RISTUBLOT_RECIPE_TYPE =
+        IRecipeType.create(Identifier.fromNamespaceAndPath(BloodRunes.MOD_ID, "ristublot"), RitualRecipe.class);
 
     @Override
     public Identifier getPluginUid() {
@@ -112,6 +112,7 @@ public class BloodRunesJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(ModBlocks.ALTAR_ITEM.get()), RITUAL_RECIPE_TYPE, RISTUBLOT_RECIPE_TYPE);
+        registration.addCraftingStation(RITUAL_RECIPE_TYPE, ModBlocks.ALTAR.get());
+        registration.addCraftingStation(RISTUBLOT_RECIPE_TYPE, ModBlocks.ALTAR.get());
     }
 }

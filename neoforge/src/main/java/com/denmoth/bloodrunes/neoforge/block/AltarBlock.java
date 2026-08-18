@@ -51,7 +51,7 @@ public class AltarBlock extends BaseEntityBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
             boolean hasAnyItem = false;
-            for (int i = 0; i < 9; i++) {
+            for (int i = 0; i < 10; i++) {
                 if (!altar.getItems().get(i).isEmpty()) { hasAnyItem = true; break; }
             }
             if (hasAnyItem) {
@@ -60,15 +60,15 @@ public class AltarBlock extends BaseEntityBlock {
                     if (altar.isRitualActive()) {
                         // Punish the player for interrupting the ritual
                         if (level instanceof net.minecraft.server.level.ServerLevel sl) {
-                                net.minecraft.world.entity.Entity entity = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(net.minecraft.resources.Identifier.withDefaultNamespace("lightning_bolt")).get().value().create(sl, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
-                                if (entity instanceof net.minecraft.world.entity.LightningBolt bolt) {
-                                    bolt.setPos(player.getX(), player.getY(), player.getZ());
-                                    sl.addFreshEntity(bolt);
-                                }
+                            net.minecraft.world.entity.Entity entity = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(net.minecraft.resources.Identifier.withDefaultNamespace("lightning_bolt")).get().value().create(sl, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+                            if (entity instanceof net.minecraft.world.entity.LightningBolt bolt) {
+                                bolt.setPos(player.getX(), player.getY(), player.getZ());
+                                sl.addFreshEntity(bolt);
+                            }
                         }
                     }
                     
-                    for (int i = 8; i >= 1; i--) {
+                    for (int i = 9; i >= 1; i--) {
                         if (!altar.getItems().get(i).isEmpty()) {
                             extracted = altar.getItems().get(i).copy();
                             altar.getItems().set(i, ItemStack.EMPTY);
@@ -85,12 +85,6 @@ public class AltarBlock extends BaseEntityBlock {
                     }
 
                     if (!extracted.isEmpty()) {
-                        if (altar.isRitualActive()) {
-                            // Only cancel after extracting so we don't double punish, but we need to cancel it
-                            // Actually it's better to cancel by manually calling a method, but since it's private,
-                            // we'll let the tick loop catch the empty center and cancel itself, OR we just set a flag.
-                            // The tick loop will cancel it automatically because the items don't match anymore.
-                        }
                         if (!player.addItem(extracted)) {
                             player.drop(extracted, false);
                         }
@@ -106,49 +100,7 @@ public class AltarBlock extends BaseEntityBlock {
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof AltarBlockEntity altar) {
             if (stack.isEmpty()) {
-                boolean hasAnyItem = false;
-                for (int i = 0; i < 9; i++) {
-                    if (!altar.getItems().get(i).isEmpty()) { hasAnyItem = true; break; }
-                }
-                if (hasAnyItem) {
-                    if (!level.isClientSide()) {
-                        ItemStack extracted = ItemStack.EMPTY;
-                        if (altar.isRitualActive()) {
-                            // Punish the player for interrupting the ritual
-                            if (level instanceof net.minecraft.server.level.ServerLevel sl) {
-                                net.minecraft.world.entity.Entity entity = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(net.minecraft.resources.Identifier.withDefaultNamespace("lightning_bolt")).get().value().create(sl, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
-                                if (entity instanceof net.minecraft.world.entity.LightningBolt bolt) {
-                                    bolt.setPos(player.getX(), player.getY(), player.getZ());
-                                    sl.addFreshEntity(bolt);
-                                }
-                            }
-                        }
-                        
-                        for (int i = 8; i >= 1; i--) {
-                            if (!altar.getItems().get(i).isEmpty()) {
-                                extracted = altar.getItems().get(i).copy();
-                                altar.getItems().set(i, ItemStack.EMPTY);
-                                altar.setChanged();
-                                if (level instanceof net.minecraft.server.level.ServerLevel sl) sl.sendBlockUpdated(pos, state, state, 3);
-                                break;
-                            }
-                        }
-                        if (extracted.isEmpty() && !altar.getItems().get(0).isEmpty()) {
-                            extracted = altar.getItems().get(0).copy();
-                            altar.getItems().set(0, ItemStack.EMPTY);
-                            altar.setChanged();
-                            if (level instanceof net.minecraft.server.level.ServerLevel sl) sl.sendBlockUpdated(pos, state, state, 3);
-                        }
-
-                        if (!extracted.isEmpty()) {
-                            if (!player.addItem(extracted)) {
-                                player.drop(extracted, false);
-                            }
-                        }
-                    }
-                    return InteractionResult.SUCCESS;
-                }
-                return InteractionResult.PASS;
+                return useWithoutItem(state, level, pos, player, hit);
             }
             if (!level.isClientSide()) {
                 if (altar.addItem(stack, player)) {
@@ -159,6 +111,31 @@ public class AltarBlock extends BaseEntityBlock {
             }
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+        if (blockEntity instanceof AltarBlockEntity altar) {
+            for (ItemStack stack : altar.getItems()) {
+                if (!stack.isEmpty()) {
+                    net.minecraft.world.Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack);
+                }
+            }
+        }
+        super.playerDestroy(level, player, pos, state, blockEntity, tool);
+    }
+
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel level, BlockPos pos, boolean isMoving) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof AltarBlockEntity altar) {
+            for (ItemStack stack : altar.getItems()) {
+                if (!stack.isEmpty()) {
+                    net.minecraft.world.Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack);
+                }
+            }
+        }
+        super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
     }
 
     @Nullable

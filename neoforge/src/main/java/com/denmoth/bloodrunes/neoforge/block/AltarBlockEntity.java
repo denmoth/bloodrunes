@@ -22,6 +22,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class AltarBlockEntity extends BlockEntity {
+    public static final java.util.Set<AltarBlockEntity> LOADED_ALTARS = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
     public static final java.util.Set<AltarBlockEntity> ACTIVE_ALTARS = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
 
     private net.minecraft.core.NonNullList<ItemStack> items = net.minecraft.core.NonNullList.withSize(10, ItemStack.EMPTY);
@@ -164,8 +165,8 @@ public class AltarBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         java.util.List<ItemStack> list = input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).orElse(java.util.Collections.emptyList());
-        this.items.clear();
-        for(int i = 0; i < Math.min(list.size(), 10); i++) {
+        this.items = net.minecraft.core.NonNullList.withSize(10, ItemStack.EMPTY);
+        for (int i = 0; i < Math.min(list.size(), 10); i++) {
             this.items.set(i, list.get(i));
         }
         this.ritualActive = input.getBooleanOr("ritualActive", false);
@@ -203,16 +204,14 @@ public class AltarBlockEntity extends BlockEntity {
                     currentRadius = 8.0 * ((1.0f - progress) / 0.1f); // Collapse over last 10%
                 }
 
-                // Draw circle on the ground radius and floating enchant particles
-                for (int i = 0; i < 360; i += 5) {
-                    if (level.getRandom().nextFloat() < 0.3f) {
-                        double rad = Math.toRadians(i);
-                        double cx = pos.getX() + 0.5 + Math.cos(rad) * currentRadius;
-                        double cz = pos.getZ() + 0.5 + Math.sin(rad) * currentRadius;
-                        level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME, cx, pos.getY() + 1.0, cz, 0, 0.05, 0);
-                        if (level.getRandom().nextFloat() < 0.4f) {
-                            level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, cx, pos.getY() + 1.0 + level.getRandom().nextDouble() * 2.5, cz, 0, 0.1, 0);
-                        }
+                // Draw smooth circle on the ground with optimized batch of particles
+                for (int i = 0; i < 8; i++) {
+                    double angle = level.getRandom().nextDouble() * (2 * Math.PI);
+                    double cx = pos.getX() + 0.5 + Math.cos(angle) * currentRadius;
+                    double cz = pos.getZ() + 0.5 + Math.sin(angle) * currentRadius;
+                    level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME, cx, pos.getY() + 1.0, cz, 0, 0.05, 0);
+                    if (level.getRandom().nextFloat() < 0.4f) {
+                        level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, cx, pos.getY() + 1.0 + level.getRandom().nextDouble() * 2.5, cz, 0, 0.1, 0);
                     }
                 }
 
@@ -237,9 +236,11 @@ public class AltarBlockEntity extends BlockEntity {
     public void setRemoved() {
         super.setRemoved();
         ACTIVE_ALTARS.remove(this);
+        LOADED_ALTARS.remove(this);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, AltarBlockEntity entity) {
+        LOADED_ALTARS.add(entity);
         if (entity.ritualActive) {
             ACTIVE_ALTARS.add(entity);
         } else {
@@ -263,15 +264,21 @@ public class AltarBlockEntity extends BlockEntity {
                 items.get(0), circleItems, recordedKills, playerWasLowHp, playerDied, ticksActive, worldPosition, interactedPlayers
             );
 
+            java.util.Optional<net.minecraft.world.item.crafting.RecipeHolder<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>> recipeOpt = java.util.Optional.empty();
+            if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                recipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
+            }
+            boolean isRistublot = checkRistublot(input);
+
             if (!ritualActive) {
-                // Try to start a ritual that doesn't require kills (or matches current state)
-                java.util.Optional<net.minecraft.world.item.crafting.RecipeHolder<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>> recipeOpt = java.util.Optional.empty();
-                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-                    recipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
-                }
-                if (recipeOpt.isPresent() || checkRistublot(input)) {
+                if (recipeOpt.isPresent() || isRistublot) {
                     ritualActive = true;
                     ticksActive = 0;
+                    if (recipeOpt.isPresent()) {
+                        this.duration = recipeOpt.get().value().getDurationTicks();
+                    } else if (isRistublot) {
+                        this.duration = 200;
+                    }
                     setChanged();
                     level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
                 }
@@ -280,29 +287,22 @@ public class AltarBlockEntity extends BlockEntity {
             if (ritualActive) {
                 ticksActive++;
 
-                // Retrieve recipe to know duration
-                java.util.Optional<net.minecraft.world.item.crafting.RecipeHolder<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>> currentRecipeOpt = java.util.Optional.empty();
-                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-                    currentRecipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
-                    if (currentRecipeOpt.isPresent()) {
-                        this.duration = currentRecipeOpt.get().value().getDurationTicks();
-                    } else if (checkRistublot(input)) {
-                        this.duration = 200;
-                    } else {
-                        this.duration = 600;
-                    }
+                if (recipeOpt.isPresent()) {
+                    this.duration = recipeOpt.get().value().getDurationTicks();
+                } else if (isRistublot) {
+                    this.duration = 200;
                 }
 
                 // Heartbeat sound - accelerates as ritual progresses
                 float progress = Math.min(1.0f, (float) ticksActive / duration);
-                int heartbeatInterval = Math.max(10, (int) (40 - (progress * 30))); // 40 ticks at start, down to 10 at end
-                float pitch = 0.5f + (progress * 0.5f); // Pitch increases slightly
+                int heartbeatInterval = Math.max(10, (int) (40 - (progress * 30)));
+                float pitch = 0.5f + (progress * 0.5f);
 
                 if (ticksActive % heartbeatInterval == 0) {
                     level.playSound(null, worldPosition, SoundEvents.WARDEN_HEARTBEAT, SoundSource.BLOCKS, 1.5F, pitch);
                 }
 
-                // Block entities from crossing radius 8, y +12 / -8
+                // Boundary force field (radius 8)
                 net.minecraft.world.phys.AABB bounds = new net.minecraft.world.phys.AABB(
                         worldPosition.getX() + 0.5 - 9, worldPosition.getY() - 8, worldPosition.getZ() + 0.5 - 9,
                         worldPosition.getX() + 0.5 + 9, worldPosition.getY() + 12, worldPosition.getZ() + 0.5 + 9
@@ -310,12 +310,13 @@ public class AltarBlockEntity extends BlockEntity {
                 for (net.minecraft.world.entity.LivingEntity entity : level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, bounds)) {
                     double dx = entity.getX() - (worldPosition.getX() + 0.5);
                     double dz = entity.getZ() - (worldPosition.getZ() + 0.5);
-                    double dist = Math.sqrt(dx * dx + dz * dz);
+                    double distSq = dx * dx + dz * dz;
 
-                    if (dist > 7.0 && dist < 9.0) {
+                    if (distSq > 49.0 && distSq < 81.0) {
+                        double dist = Math.sqrt(distSq);
                         double nx = dx / dist;
                         double nz = dz / dist;
-                        if (dist < 8.0) {
+                        if (distSq < 64.0) {
                             entity.setDeltaMovement(entity.getDeltaMovement().add(-nx * 0.8, 0, -nz * 0.8));
                         } else {
                             entity.setDeltaMovement(entity.getDeltaMovement().add(nx * 0.8, 0, nz * 0.8));
@@ -324,22 +325,13 @@ public class AltarBlockEntity extends BlockEntity {
                     }
                 }
 
-                // Re-evaluate input with new ticksActive
-                input = new com.denmoth.bloodrunes.neoforge.recipe.RitualRecipeInput(
-                    items.get(0), circleItems, recordedKills, playerWasLowHp, playerDied, ticksActive, worldPosition, interactedPlayers
-                );
-                java.util.Optional<net.minecraft.world.item.crafting.RecipeHolder<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>> recipeOpt = java.util.Optional.empty();
-                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-                    recipeOpt = serverLevel.getServer().getRecipeManager().getRecipeFor((net.minecraft.world.item.crafting.RecipeType<com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe>)com.denmoth.bloodrunes.neoforge.setup.ModRecipes.RITUAL_TYPE.get(), input, serverLevel);
-                }
-                
                 boolean isSacrificeRitual = recipeOpt.isPresent() && recipeOpt.get().value().getConditions().stream().anyMatch(c -> c instanceof com.denmoth.bloodrunes.neoforge.recipe.condition.SacrificeCondition);
                 boolean isKillRitual = recipeOpt.isPresent() && !isSacrificeRitual;
                 
                 if (ticksActive >= duration || (isKillRitual && recipeOpt.isPresent())) {
                     if (recipeOpt.isPresent()) {
                         completeRitual(recipeOpt.get().value().assemble(input));
-                    } else if (checkRistublot(input)) {
+                    } else if (isRistublot) {
                         completeRitual(assembleRistublot(input));
                     } else {
                         cancelRitual();
