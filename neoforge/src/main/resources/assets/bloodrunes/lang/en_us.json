@@ -8,6 +8,7 @@
   "item.bloodrunes.sacrificial_dagger": "Sacrificial Dagger",
   "block.bloodrunes.altar": "Runic Anvil",
   "message.bloodrunes.language_learned": "You have learned the ancient Viking language!",
+  "message.bloodrunes.unknown_language": "You do not understand the ancient runes to craft this.",
   "message.bloodrunes.ritual_started": "The altar hums with dark energy...",
   "message.bloodrunes.ritual_success": "The ritual was completed!",
   "item.bloodrunes.uruz_rune": "Uruz Rune (Aurochs)",

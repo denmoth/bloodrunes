@@ -8,6 +8,7 @@
   "item.bloodrunes.sacrificial_dagger": "Жертвенный кинжал",
   "block.bloodrunes.altar": "Ритуальный Стол",
   "message.bloodrunes.language_learned": "Вы постигли древний язык викингов!",
+  "message.bloodrunes.unknown_language": "Вы не знаете древний язык рун, чтобы создать это.",
   "message.bloodrunes.ritual_started": "Алтарь гудит от темной энергии...",
   "message.bloodrunes.ritual_success": "Ритуал был завершен!",
   "item.bloodrunes.uruz_rune": "Руна Уруз (Тур)",

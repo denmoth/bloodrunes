@@ -30,7 +30,7 @@ public class CraftingAndAnvilHandler {
                 player.drop(new ItemStack(Items.GOLD_INGOT, 1), false);
                 player.drop(new ItemStack(Items.BONE_BLOCK, 4), false);
                 
-                player.sendOverlayMessage(Component.literal("You do not understand the ancient runes to craft this."));
+                player.sendOverlayMessage(Component.translatable("message.bloodrunes.unknown_language"));
             }
         }
     }
