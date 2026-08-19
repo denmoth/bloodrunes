@@ -1,36 +1,57 @@
 package com.denmoth.bloodrunes.neoforge.client.jei;
 
+import com.denmoth.bloodrunes.neoforge.block.AltarBlockEntity;
 import com.denmoth.bloodrunes.neoforge.recipe.RitualRecipe;
 import com.denmoth.bloodrunes.neoforge.setup.ModBlocks;
-import mezz.jei.api.constants.VanillaTypes;
+import com.denmoth.bloodrunes.neoforge.setup.ModDataComponents;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
-import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.types.IRecipeType;
-import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.api.gui.drawable.IDrawableStatic;
-
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.Identifier;
 
-public class RistublotRecipeCategory implements IRecipeCategory<RitualRecipe> {
-    private final IDrawable background;
-    private final IDrawable icon;
-    private final Component title;
-    private final IDrawableStatic slotDrawable;
-    private final IGuiHelper guiHelper;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * JEI category: Ristublot (applying a rune to a weapon/armour piece).
+ *
+ * <pre>
+ * ┌───────────────────────────────────────────┐
+ * │  [Tool] [Rune]  ──→──  [Runed Tool]       │  y=5  (top row)
+ * ├───────────────────────────────────────────┤
+ * │  [Sac item] [Sac item] …                  │  y=30 (sacrifice condition slots)
+ * ├ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
+ * │  ❤ HP ≤ 30%   👥 2+ players              │  y=62 (text conditions via ITextWidget)
+ * └───────────────────────────────────────────┘
+ * </pre>
+ *
+ * Uses a curated sample list for the output slot instead of iterating the entire
+ * item registry (which was very expensive).
+ */
+public class RistublotRecipeCategory extends BaseRitualCategory {
+
+    /** Curated representative items shown in the output slot cycle. */
+    private static final List<Item> SAMPLE_ITEMS = List.of(
+            net.minecraft.world.item.Items.DIAMOND_SWORD,
+            net.minecraft.world.item.Items.DIAMOND_AXE,
+            net.minecraft.world.item.Items.BOW,
+            net.minecraft.world.item.Items.CROSSBOW,
+            net.minecraft.world.item.Items.DIAMOND_HELMET,
+            net.minecraft.world.item.Items.DIAMOND_CHESTPLATE,
+            net.minecraft.world.item.Items.DIAMOND_LEGGINGS,
+            net.minecraft.world.item.Items.DIAMOND_BOOTS,
+            net.minecraft.world.item.Items.NETHERITE_SWORD,
+            net.minecraft.world.item.Items.NETHERITE_AXE,
+            net.minecraft.world.item.Items.NETHERITE_HELMET,
+            net.minecraft.world.item.Items.NETHERITE_CHESTPLATE
+    );
 
     public RistublotRecipeCategory(IGuiHelper guiHelper) {
-        this.guiHelper = guiHelper;
-        this.background = guiHelper.createBlankDrawable(160, 140);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.ALTAR_ITEM.get()));
-        this.title = Component.translatable("gui.bloodrunes.category.ristublot");
-        this.slotDrawable = guiHelper.getSlotDrawable();
+        super(guiHelper, new ItemStack(ModBlocks.ALTAR_ITEM.get()));
     }
 
     @Override
@@ -40,125 +61,64 @@ public class RistublotRecipeCategory implements IRecipeCategory<RitualRecipe> {
 
     @Override
     public Component getTitle() {
-        return this.title;
-    }
-
-    @Override
-    public IDrawable getIcon() {
-        return icon;
-    }
-
-    @Override
-    public int getWidth() {
-        return 160;
-    }
-
-    @Override
-    public int getHeight() {
-        return 140;
+        return Component.translatable("gui.bloodrunes.category.ristublot");
     }
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RitualRecipe recipe, IFocusGroup focuses) {
-        // Bottom row for static, clickable slots
-        int startX = 10;
-        int startY = 100;
-        
-        builder.addSlot(RecipeIngredientRole.INPUT, startX, startY)
-            .add(recipe.getBaseRune());
-
-        int currentX = startX + 20;
-        int currentY = startY;
-        for (com.denmoth.bloodrunes.neoforge.recipe.condition.RitualCondition condition : recipe.getConditions()) {
-            if (condition instanceof com.denmoth.bloodrunes.neoforge.recipe.condition.SacrificeCondition sacrifice) {
-                for (int c = 0; c < sacrifice.count(); c++) {
-                    builder.addSlot(RecipeIngredientRole.INPUT, currentX, currentY)
-                        .add(sacrifice.item());
-                    currentX += 18;
-                    if (currentX > 140) {
-                        currentX = startX + 20;
-                        currentY += 18;
-                    }
-                }
-            } else if (condition instanceof com.denmoth.bloodrunes.neoforge.recipe.condition.KillCondition kill) {
-                java.util.List<ItemStack> eggs = new java.util.ArrayList<>();
-                if (kill.entity().entityType().isPresent()) {
-                    var eggOpt = net.minecraft.world.item.SpawnEggItem.byId(kill.entity().entityType().get().value());
-                    if (eggOpt != null && eggOpt.isPresent()) eggs.add(new ItemStack(eggOpt.get().value(), kill.count()));
-                } else if (kill.entity().tag().isPresent()) {
-                    var tagOpt = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(kill.entity().tag().get());
-                    if (tagOpt.isPresent()) {
-                        for (var holder : tagOpt.get()) {
-                            var eggOpt = net.minecraft.world.item.SpawnEggItem.byId(holder.value());
-                            if (eggOpt != null && eggOpt.isPresent()) eggs.add(new ItemStack(eggOpt.get().value(), kill.count()));
-                        }
-                    }
-                }
-                
-                if (!eggs.isEmpty()) {
-                    builder.addSlot(RecipeIngredientRole.INPUT, currentX, currentY)
-                        .addItemStacks(eggs);
-                    currentX += 18;
-                    if (currentX > 140) {
-                        currentX = startX + 20;
-                        currentY += 18;
-                    }
-                }
-            }
+        // Top row slot 1: compatible tool/armor (cycling through sample items)
+        List<ItemStack> inputItems = buildInputSample();
+        if (!inputItems.isEmpty()) {
+            builder.addSlot(RecipeIngredientRole.INPUT, INPUT_X, TOP_Y)
+                   .addItemStacks(inputItems);
         }
 
-        // Output item
-        java.util.List<ItemStack> outputs = new java.util.ArrayList<>();
-        if (recipe.getResult().has(com.denmoth.bloodrunes.neoforge.setup.ModDataComponents.RUNE_DATA.get())) {
-            String runeId = recipe.getResult().get(com.denmoth.bloodrunes.neoforge.setup.ModDataComponents.RUNE_DATA.get()).runeId();
-            for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
-                net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(item);
-                if (com.denmoth.bloodrunes.neoforge.block.AltarBlockEntity.isRuneCompatible(stack)) {
-                    ItemStack out = stack.copy();
-                    out.set(com.denmoth.bloodrunes.neoforge.setup.ModDataComponents.RUNE_DATA.get(), new com.denmoth.bloodrunes.neoforge.setup.ModDataComponents.RuneData(runeId, 0L));
-                    outputs.add(out);
-                }
-            }
-        } else if (!recipe.getResult().isEmpty()) {
-            outputs.add(recipe.getResult());
-        }
-        
+        // Top row slot 2: the rune ingredient
+        builder.addSlot(RecipeIngredientRole.INPUT, INPUT_X + SLOT_SIZE, TOP_Y)
+               .add(recipe.getBaseRune());
+
+        // Output: same items but with rune data component applied
+        List<ItemStack> outputs = buildOutputSample(recipe);
         if (!outputs.isEmpty()) {
-            builder.addSlot(RecipeIngredientRole.OUTPUT, 140, 100)
-                .addItemStacks(outputs);
+            builder.addSlot(RecipeIngredientRole.OUTPUT, OUTPUT_X, TOP_Y)
+                   .addItemStacks(outputs);
         }
+
+        // Sacrifice / kill condition slots
+        addItemConditionSlots(builder, recipe.getConditions(), INPUT_X, SLOTS_Y);
     }
 
+    /** Arrow positioned after two input slots. */
     @Override
-    public void draw(RitualRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
-        background.draw(graphics, 0, 0);
+    protected int arrowX() {
+        return INPUT_X + SLOT_SIZE * 2 + 4;
+    }
 
-        long time = System.currentTimeMillis() / 20; // 20ms per tick
+    // ── Private helpers ───────────────────────────────────────────────────────
 
-        // Draw Altar at center
-        int centerX = 72;
-        int centerY = 52;
-        int altarY = centerY;
-        guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.ALTAR_ITEM.get())).draw(graphics, centerX, altarY);
+    private static List<ItemStack> buildInputSample() {
+        List<ItemStack> result = new ArrayList<>();
+        for (Item item : SAMPLE_ITEMS) {
+            ItemStack s = new ItemStack(item);
+            if (AltarBlockEntity.isRuneCompatible(s)) result.add(s);
+        }
+        return result;
+    }
 
-        // Draw orbiting ingredients using JEI's currently displayed slot items
-        int radius = 32;
-        java.util.List<ItemStack> itemsToOrbit = new java.util.ArrayList<>();
-        java.util.List<mezz.jei.api.gui.ingredient.IRecipeSlotView> slots = recipeSlotsView.getSlotViews();
-        // Skip slot 0 (Base Rune) and only take Inputs
-        for (int i = 1; i < slots.size(); i++) {
-            mezz.jei.api.gui.ingredient.IRecipeSlotView slot = slots.get(i);
-            if (slot.getRole() == mezz.jei.api.recipe.RecipeIngredientRole.INPUT) {
-                slot.getDisplayedIngredient(mezz.jei.api.constants.VanillaTypes.ITEM_STACK).ifPresent(itemsToOrbit::add);
+    private static List<ItemStack> buildOutputSample(RitualRecipe recipe) {
+        if (!recipe.getResult().has(ModDataComponents.RUNE_DATA.get())) {
+            return recipe.getResult().isEmpty() ? List.of() : List.of(recipe.getResult().copy());
+        }
+        ModDataComponents.RuneData runeData = recipe.getResult().get(ModDataComponents.RUNE_DATA.get());
+        List<ItemStack> outputs = new ArrayList<>();
+        for (Item item : SAMPLE_ITEMS) {
+            ItemStack base = new ItemStack(item);
+            if (AltarBlockEntity.isRuneCompatible(base)) {
+                ItemStack out = base.copy();
+                out.set(ModDataComponents.RUNE_DATA.get(), runeData);
+                outputs.add(out);
             }
         }
-
-        int count = itemsToOrbit.size();
-        for (int i = 0; i < count; i++) {
-            double angle = (time * 0.05) + (2 * Math.PI * i / count);
-            int x = centerX + (int) (radius * Math.sin(angle));
-            int y = centerY - (int) (radius * Math.cos(angle)) + (int) (Math.sin(time * 0.06 + i * 0.8) * 3);
-            guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, itemsToOrbit.get(i)).draw(graphics, x, y);
-        }
+        return outputs;
     }
 }
