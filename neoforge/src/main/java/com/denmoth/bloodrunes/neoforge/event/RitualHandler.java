@@ -32,8 +32,11 @@ public class RitualHandler {
                 BlockPos killPos = victim.blockPosition();
 
                 // Fast lookup using loaded altars in the world (O(1) instead of 4913 block scan)
+                // Use config radius — compare distanceSq to avoid sqrt
+                int searchR = com.denmoth.bloodrunes.neoforge.setup.ModConfig.ALTAR_SEARCH_RADIUS.get();
+                double searchRSq = (double) searchR * searchR;
                 for (AltarBlockEntity altar : AltarBlockEntity.LOADED_ALTARS) {
-                    if (altar.getLevel() == level && altar.getBlockPos().distSqr(killPos) <= 64.0) {
+                    if (altar.getLevel() == level && altar.getBlockPos().distSqr(killPos) <= searchRSq) {
                         altar.onMobKilled(killer, isVillager, isPlayer, isHostile, isLowHp, killPos, event.getEntity());
                     }
                 }

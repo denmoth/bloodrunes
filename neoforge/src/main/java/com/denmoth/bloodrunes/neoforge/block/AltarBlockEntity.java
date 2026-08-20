@@ -204,13 +204,18 @@ public class AltarBlockEntity extends BlockEntity {
                 }
 
                 // Draw smooth circle on the ground with optimized batch of particles
-                for (int i = 0; i < 8; i++) {
-                    double angle = level.getRandom().nextDouble() * (2 * Math.PI);
-                    double cx = pos.getX() + 0.5 + Math.cos(angle) * currentRadius;
-                    double cz = pos.getZ() + 0.5 + Math.sin(angle) * currentRadius;
-                    level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME, cx, pos.getY() + 1.0, cz, 0, 0.05, 0);
-                    if (level.getRandom().nextFloat() < 0.4f) {
-                        level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, cx, pos.getY() + 1.0 + level.getRandom().nextDouble() * 2.5, cz, 0, 0.1, 0);
+                // Gated by config; density scales particle count
+                if (com.denmoth.bloodrunes.neoforge.setup.ModConfig.ENABLE_BLOOD_PARTICLES.get()) {
+                    double density = com.denmoth.bloodrunes.neoforge.setup.ModConfig.ALTAR_PARTICLE_DENSITY.get();
+                    int particleCount = Math.max(1, (int) Math.round(8 * density));
+                    for (int i = 0; i < particleCount; i++) {
+                        double angle = level.getRandom().nextDouble() * (2 * Math.PI);
+                        double cx = pos.getX() + 0.5 + Math.cos(angle) * currentRadius;
+                        double cz = pos.getZ() + 0.5 + Math.sin(angle) * currentRadius;
+                        level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME, cx, pos.getY() + 1.0, cz, 0, 0.05, 0);
+                        if (level.getRandom().nextFloat() < 0.4f) {
+                            level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, cx, pos.getY() + 1.0 + level.getRandom().nextDouble() * 2.5, cz, 0, 0.1, 0);
+                        }
                     }
                 }
 
