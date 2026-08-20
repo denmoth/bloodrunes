@@ -1,0 +1,33 @@
+{
+  "type": "bloodrunes:ritual",
+  "base_rune": "bloodrunes:dagaz_rune",
+  "result": {
+    "id": "minecraft:diamond_sword",
+    "count": 1,
+    "components": {
+      "bloodrunes:rune_data": {
+        "runeId": "bloodrunes:dagaz_rune",
+        "cooldownEndTimestamp": 0
+      }
+    }
+  },
+  "radius": 8.0,
+  "duration_ticks": 400,
+  "conditions": [
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:amethyst_shard",
+      "count": 4
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:echo_shard",
+      "count": 2
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "bloodrunes:dagaz_rune",
+      "count": 1
+    }
+  ]
+}

@@ -1,26 +1,23 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": {
-    "id": "bloodrunes:perthro_rune",
-    "count": 1
-  },
+  "result": { "id": "bloodrunes:perthro_rune", "count": 1 },
+  "radius": 8.0,
+  "duration_ticks": 200,
   "conditions": [
     {
       "type": "bloodrunes:sacrifice",
-      "item": "minecraft:diamond_block",
-      "count": 1
-    },
-    {
-      "type": "bloodrunes:sacrifice",
-      "item": "minecraft:emerald",
-      "count": 4
-    },
-    {
-      "type": "bloodrunes:sacrifice",
-      "item": "minecraft:gold_ingot",
+      "item": "minecraft:diamond",
       "count": 3
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:amethyst_shard",
+      "count": 8
+    },
+    {
+      "type": "bloodrunes:moon_phase",
+      "phase": 4
     }
-  ],
-  "duration_ticks": 200
+  ]
 }

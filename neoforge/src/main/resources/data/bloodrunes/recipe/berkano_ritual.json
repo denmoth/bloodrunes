@@ -1,15 +1,28 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": {
-    "id": "bloodrunes:berkano_rune",
-    "count": 1
-  },
+  "result": { "id": "bloodrunes:berkano_rune", "count": 1 },
+  "radius": 8.0,
+  "duration_ticks": 400,
   "conditions": [
     {
-      "type": "bloodrunes:event",
-      "event": "bloodrunes:die_on_altar"
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:flowering_azalea",
+      "count": 2
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:moss_block",
+      "count": 4
+    },
+    {
+      "type": "bloodrunes:biome",
+      "biome_or_tag": "#minecraft:is_forest"
+    },
+    {
+      "type": "bloodrunes:time_of_day",
+      "min_time": 0,
+      "max_time": 6000
     }
-  ],
-  "duration_ticks": 6000
+  ]
 }

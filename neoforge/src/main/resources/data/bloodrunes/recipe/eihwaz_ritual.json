@@ -1,10 +1,9 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": {
-    "id": "bloodrunes:eihwaz_rune",
-    "count": 1
-  },
+  "result": { "id": "bloodrunes:eihwaz_rune", "count": 1 },
+  "radius": 8.0,
+  "duration_ticks": 600,
   "conditions": [
     {
       "type": "bloodrunes:kill",
@@ -12,10 +11,13 @@
       "count": 8
     },
     {
-      "type": "bloodrunes:kill",
-      "entity": "minecraft:villager",
-      "count": 2
+      "type": "bloodrunes:nearby_block",
+      "block": "minecraft:ancient_debris",
+      "radius": 6
+    },
+    {
+      "type": "bloodrunes:altitude",
+      "max_y": 30
     }
-  ],
-  "duration_ticks": 600
+  ]
 }
