@@ -1,23 +1,15 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": { "id": "bloodrunes:isa_rune", "count": 1 },
-  "radius": 8.0,
-  "duration_ticks": 1200,
+  "result": {
+    "id": "bloodrunes:isa_rune",
+    "count": 1
+  },
   "conditions": [
     {
-      "type": "bloodrunes:biome",
-      "biome_or_tag": "#minecraft:is_frozen"
-    },
-    {
-      "type": "bloodrunes:nearby_block",
-      "block": "minecraft:blue_ice",
-      "radius": 6
-    },
-    {
-      "type": "bloodrunes:light_level",
-      "min_light": 0,
-      "max_light": 4
+      "type": "bloodrunes:event",
+      "event": "bloodrunes:snowstorm"
     }
-  ]
+  ],
+  "duration_ticks": 1200
 }

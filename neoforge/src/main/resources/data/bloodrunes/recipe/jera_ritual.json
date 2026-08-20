@@ -1,38 +1,41 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": { "id": "bloodrunes:jera_rune", "count": 1 },
-  "radius": 8.0,
-  "duration_ticks": 400,
+  "result": {
+    "id": "bloodrunes:jera_rune",
+    "count": 1
+  },
   "conditions": [
     {
       "type": "bloodrunes:sacrifice",
       "item": "minecraft:wheat",
-      "count": 2
+      "count": 1
     },
     {
       "type": "bloodrunes:sacrifice",
       "item": "minecraft:carrot",
-      "count": 2
+      "count": 1
     },
     {
       "type": "bloodrunes:sacrifice",
       "item": "minecraft:potato",
-      "count": 2
+      "count": 1
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:beetroot",
+      "count": 1
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:melon_slice",
+      "count": 1
     },
     {
       "type": "bloodrunes:sacrifice",
       "item": "minecraft:pumpkin",
       "count": 1
-    },
-    {
-      "type": "bloodrunes:biome",
-      "biome_or_tag": "#minecraft:is_overworld"
-    },
-    {
-      "type": "bloodrunes:time_of_day",
-      "min_time": 0,
-      "max_time": 12000
     }
-  ]
+  ],
+  "duration_ticks": 200
 }

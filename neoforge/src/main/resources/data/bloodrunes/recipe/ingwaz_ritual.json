@@ -1,28 +1,21 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": { "id": "bloodrunes:ingwaz_rune", "count": 1 },
-  "radius": 8.0,
-  "duration_ticks": 200,
+  "result": {
+    "id": "bloodrunes:ingwaz_rune",
+    "count": 1
+  },
   "conditions": [
-    {
-      "type": "bloodrunes:sacrifice",
-      "item": "minecraft:golden_apple",
-      "count": 2
-    },
     {
       "type": "bloodrunes:sacrifice",
       "item": "minecraft:golden_carrot",
       "count": 4
     },
     {
-      "type": "bloodrunes:biome",
-      "biome_or_tag": "minecraft:plains"
-    },
-    {
-      "type": "bloodrunes:time_of_day",
-      "min_time": 6000,
-      "max_time": 12000
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:golden_apple",
+      "count": 4
     }
-  ]
+  ],
+  "duration_ticks": 200
 }

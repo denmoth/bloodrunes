@@ -1,22 +1,15 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": { "id": "bloodrunes:laguz_rune", "count": 1 },
-  "radius": 8.0,
-  "duration_ticks": 6000,
+  "result": {
+    "id": "bloodrunes:laguz_rune",
+    "count": 1
+  },
   "conditions": [
     {
       "type": "bloodrunes:event",
       "event": "bloodrunes:underwater_5_min"
-    },
-    {
-      "type": "bloodrunes:biome",
-      "biome_or_tag": "#minecraft:is_ocean"
-    },
-    {
-      "type": "bloodrunes:sacrifice",
-      "item": "minecraft:prismarine_crystals",
-      "count": 4
     }
-  ]
+  ],
+  "duration_ticks": 6000
 }

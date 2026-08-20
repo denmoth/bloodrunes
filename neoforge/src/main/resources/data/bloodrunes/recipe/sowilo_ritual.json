@@ -1,9 +1,10 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": { "id": "bloodrunes:sowilo_rune", "count": 1 },
-  "radius": 10.0,
-  "duration_ticks": 600,
+  "result": {
+    "id": "bloodrunes:sowilo_rune",
+    "count": 1
+  },
   "conditions": [
     {
       "type": "bloodrunes:kill",
@@ -14,15 +15,7 @@
       "type": "bloodrunes:kill",
       "entity": "minecraft:skeleton",
       "count": 6
-    },
-    {
-      "type": "bloodrunes:time_of_day",
-      "min_time": 6000,
-      "max_time": 12000
-    },
-    {
-      "type": "bloodrunes:biome",
-      "biome_or_tag": "#minecraft:is_overworld"
     }
-  ]
+  ],
+  "duration_ticks": 600
 }

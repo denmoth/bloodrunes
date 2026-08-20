@@ -1,23 +1,15 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": { "id": "bloodrunes:mannaz_rune", "count": 1 },
-  "radius": 8.0,
-  "duration_ticks": 2400,
+  "result": {
+    "id": "bloodrunes:mannaz_rune",
+    "count": 1
+  },
   "conditions": [
     {
       "type": "bloodrunes:event",
       "event": "bloodrunes:cure_zombie_villager"
-    },
-    {
-      "type": "bloodrunes:sacrifice",
-      "item": "minecraft:emerald",
-      "count": 2
-    },
-    {
-      "type": "bloodrunes:covenant",
-      "min_players": 2,
-      "radius": 12.0
     }
-  ]
+  ],
+  "duration_ticks": 2400
 }
