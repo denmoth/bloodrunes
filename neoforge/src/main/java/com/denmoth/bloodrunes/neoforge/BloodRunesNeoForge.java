@@ -5,7 +5,8 @@ import net.neoforged.fml.common.Mod;
 
 @Mod(BloodRunes.MOD_ID)
 public class BloodRunesNeoForge {
-    public BloodRunesNeoForge(net.neoforged.bus.api.IEventBus modEventBus) {
+    public BloodRunesNeoForge(net.neoforged.bus.api.IEventBus modEventBus, net.neoforged.fml.ModContainer modContainer) {
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON, com.denmoth.bloodrunes.neoforge.setup.ModConfig.SPEC);
         com.denmoth.bloodrunes.neoforge.setup.ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         com.denmoth.bloodrunes.neoforge.setup.ModItems.ITEMS.register(modEventBus);
         com.denmoth.bloodrunes.neoforge.setup.ModBlocks.BLOCKS.register(modEventBus);

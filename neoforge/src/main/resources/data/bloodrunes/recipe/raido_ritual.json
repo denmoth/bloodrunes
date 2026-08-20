@@ -1,15 +1,18 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": {
-    "id": "bloodrunes:raido_rune",
-    "count": 1
-  },
+  "result": { "id": "bloodrunes:raido_rune", "count": 1 },
+  "radius": 8.0,
+  "duration_ticks": 6000,
   "conditions": [
     {
       "type": "bloodrunes:event",
       "event": "bloodrunes:run_1000_blocks"
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:leather_boots",
+      "count": 1
     }
-  ],
-  "duration_ticks": 6000
+  ]
 }

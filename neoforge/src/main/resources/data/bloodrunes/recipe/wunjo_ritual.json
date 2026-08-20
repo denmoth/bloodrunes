@@ -1,16 +1,24 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": {
-    "id": "bloodrunes:wunjo_rune",
-    "count": 1
-  },
+  "result": { "id": "bloodrunes:wunjo_rune", "count": 1 },
+  "radius": 8.0,
+  "duration_ticks": 200,
   "conditions": [
     {
       "type": "bloodrunes:sacrifice",
       "item": "minecraft:bread",
-      "count": 2
+      "count": 4
+    },
+    {
+      "type": "bloodrunes:sacrifice",
+      "item": "minecraft:cake",
+      "count": 1
+    },
+    {
+      "type": "bloodrunes:time_of_day",
+      "min_time": 0,
+      "max_time": 6000
     }
-  ],
-  "duration_ticks": 200
+  ]
 }

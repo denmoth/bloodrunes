@@ -1,16 +1,19 @@
 {
   "type": "bloodrunes:ritual",
   "base_rune": "bloodrunes:blank_rune",
-  "result": {
-    "id": "bloodrunes:gebo_rune",
-    "count": 1
-  },
+  "result": { "id": "bloodrunes:gebo_rune", "count": 1 },
+  "radius": 8.0,
+  "duration_ticks": 200,
   "conditions": [
     {
       "type": "bloodrunes:sacrifice",
       "item": "minecraft:totem_of_undying",
-      "count": 2
+      "count": 1
+    },
+    {
+      "type": "bloodrunes:covenant",
+      "min_players": 2,
+      "radius": 8.0
     }
-  ],
-  "duration_ticks": 200
+  ]
 }
